@@ -1,14 +1,21 @@
 package org.gmd.scala.uf
 
-object Ex2 extends App {
-	val test = new WQUUF(10);
-	test.union(2,3);
-	test.union(1,9);
-	test.union(1,6);
-	test.union(6,5);
-	test.union(7,4);
-	test.union(7,2);
-	test.union(6,2);
-	test.union(8,6);
-	test.union(0,7);
+import scala.io.Source
+
+object Ex2{
+	
+	def main(args:Array[String]) = {
+		val test = new WQUUF(10)
+		for(line <- Source.fromFile(args(0)).getLines(); union <- line.split(" ")){
+			val p = union.split("-")(0)
+			val q =  union.split("-")(1)
+			print(p + "-" + q + ": ")
+			test.union(p.toInt, q.toInt)
+		}
+
+		//Check the result
+		val expected = Source.fromFile(args(1)).getLines().next
+		println(if(expected == test.toString) "Success" else "Expected " +  expected + ", actual " + test)
+
+	}
 }
