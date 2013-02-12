@@ -1,6 +1,6 @@
 package org.gmd.scala.uf
 
-object Execute extends App {
+object Ex1 extends App {
 	val test = new QFUF(10);
 	test.union(8,1);
 	test.union(9,3);
@@ -8,5 +8,4 @@ object Execute extends App {
 	test.union(0,1);
 	test.union(2,4);
 	test.union(7,5);
-	println(test);
 }

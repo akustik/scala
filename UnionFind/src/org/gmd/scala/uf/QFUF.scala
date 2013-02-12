@@ -16,6 +16,7 @@ class QFUF(n: Int) {
 		val idp = values(p);
 		val idq = values(q);
 		values = values.map((x: Int) => (if (x == idp) idq else x));
+		println(this);
 	}
 	
 	override def toString(): String = {
