@@ -13,4 +13,4 @@ function mkclasspath {
 SCALA_LIBS=`find lib -name "*.jar"`
 CLASSPATH=`mkclasspath $SCALA_LIBS`
 
-scala -cp bin:$CLASSPATH org.scalatest.run org.gmd.scala.poker.CardSuite
+scala -cp bin:$CLASSPATH org.scalatest.run org.gmd.scala.poker.CardSuite  org.gmd.scala.poker.HandSuite

@@ -27,4 +27,8 @@ class CardSuite extends FunSuite {
 		assert(twoOfDiamonds.value === 2)
 		assert(twoOfDiamonds.suit === "diamonds")
 	}
+
+	test("compare two cards with their natural order") {
+		assert(new Card("2D") < new Card("3D") === true)
+	}
 }
