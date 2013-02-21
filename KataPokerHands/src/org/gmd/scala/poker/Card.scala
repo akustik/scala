@@ -1,12 +1,12 @@
 package org.gmd.scala.poker
 
-class Card (c: String) extends Ordered[Card] {
+class Card (c: String) extends Ordered[Card]{
 	require(c.length == 2)
 	require(value != -1)
 	require(suit != null)
 
 	def compare(that: Card) = this.value - that.value
-
+	
 	def suit = c(1) match {
 		case 'C' => "clubs"
 		case 'D' => "diamonds"
@@ -30,4 +30,17 @@ class Card (c: String) extends Ordered[Card] {
 		case 'A' => 13
 		case _ => -1
 	}
+
+	override def equals(b: Any) = b match {
+		case card: Card => card.suit == this.suit && card.value == this.value
+		case _ => false
+	}
+}
+
+object CardValueOrdering extends Ordering[Card] {
+	def compare(a: Card, b: Card) = a compare b
+}
+
+object CardColorOrdering extends Ordering[Card] {
+	def compare(a: Card, b: Card) = a.suit compare b.suit
 }

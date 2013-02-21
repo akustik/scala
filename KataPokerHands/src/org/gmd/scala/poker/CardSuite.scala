@@ -1,6 +1,7 @@
 package org.gmd.scala.poker
 
 import org.scalatest.FunSuite
+import scala.util.Sorting
 
 class CardSuite extends FunSuite {
 
@@ -30,5 +31,22 @@ class CardSuite extends FunSuite {
 
 	test("compare two cards with their natural order") {
 		assert(new Card("2D") < new Card("3D") === true)
+	}
+
+	test("order an array of cards by value") {
+		val cards = Array(new Card("3D"), new Card("4D"), new Card("2D"))
+		Sorting.quickSort(cards)(CardValueOrdering)
+		
+		assert(cards(0) === new Card("2D"))
+		assert(cards(2) === new Card("4D"))
+	}
+
+	test("order an array of cards by color") {
+		val cards = Array(new Card("3H"), new Card("4D"))
+	        Sorting.quickSort(cards)(CardColorOrdering)
+
+		assert(cards(0) === new Card("4D"))
+		assert(cards(1) === new Card("3H"))
+
 	}
 }
