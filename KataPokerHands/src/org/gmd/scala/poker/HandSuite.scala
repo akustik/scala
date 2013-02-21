@@ -43,5 +43,90 @@ class HandSuite extends FunSuite {
 		assert(b > a)
 	}
 
+	test("check that a hand is straight") {
+                val a = new Hand(Array(
+                        new Card("2D"),
+                        new Card("3D"),
+                        new Card("4D"),
+                        new Card("5H"),
+                        new Card("6D")
+                ))
+
+		assert(a.isStraight === true)
+	}
+
+	test("check that a hand is notstraight") {
+                val a = new Hand(Array(
+                        new Card("2D"),
+                        new Card("3D"),
+                        new Card("4D"),
+                        new Card("5H"),
+                        new Card("7D")
+                ))
+
+                assert(a.isStraight === false)
+        }
 	
+	test("check that a hand is flush") {
+                val a = new Hand(Array(
+                        new Card("2D"),
+                        new Card("3D"),
+                        new Card("4D"),
+                        new Card("5D"),
+                        new Card("6D")
+                ))
+
+                assert(a.isFlush === true)
+        }
+
+	test("check that a hand is not flush") {
+                val a = new Hand(Array(
+                        new Card("2D"),
+                        new Card("3D"),
+                        new Card("4D"),
+                        new Card("5H"),
+                        new Card("6D")
+                ))
+
+                assert(a.isFlush === false)
+        }
+
+        test("check that a hand has four of a kind") {
+                val a = new Hand(Array(
+                        new Card("2D"),
+                        new Card("2H"),
+                        new Card("2S"),
+                        new Card("2C"),
+                        new Card("6D")
+                ))
+
+                assert(a.fourOfAKind === 2)
+        }
+
+	test("check that a hand has three of a kind") {
+                val a = new Hand(Array(
+                        new Card("2D"),
+                        new Card("2H"),
+                        new Card("2S"),
+                        new Card("3C"),
+                        new Card("6D")
+                ))
+
+                assert(a.threeOfAKind === 2)
+        }
+
+        test("check that a hand has two of a kind (twice)") {
+                val a = new Hand(Array(
+                        new Card("2D"),
+                        new Card("2H"),
+                        new Card("3S"),
+                        new Card("3C"),
+                        new Card("6D")
+                ))
+
+                assert(a.twoOfAKind(2) === 3)
+		assert(a.twoOfAKind(3) === 2)
+        }
+
+
 }
