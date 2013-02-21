@@ -20,7 +20,7 @@ class HandSuite extends FunSuite {
 			new Card("8D")
 		))
 
-		assert(h.toString === "2H 3D 5D 8D")
+		assert(h.toString === "2D 2H 3D 5D 8D")
 	}
 
 	test("check that the higher rank hand is greater") {

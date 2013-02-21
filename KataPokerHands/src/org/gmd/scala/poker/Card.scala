@@ -5,7 +5,12 @@ class Card (c: String) extends Ordered[Card]{
 	require(value != -1)
 	require(suit != null)
 
-	def compare(that: Card) = this.value - that.value
+	def compare(that: Card) = {
+		if(this.value == that.value)
+			this.suit compare that.suit
+		else
+			this.value - that.value
+	}
 	
 	def suit = c(1) match {
 		case 'C' => "clubs"
