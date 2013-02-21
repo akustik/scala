@@ -35,6 +35,8 @@ class Card (c: String) extends Ordered[Card]{
 		case card: Card => card.suit == this.suit && card.value == this.value
 		case _ => false
 	}
+
+	override def toString = c
 }
 
 object CardValueOrdering extends Ordering[Card] {
