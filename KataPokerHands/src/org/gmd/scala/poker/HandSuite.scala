@@ -20,7 +20,7 @@ class HandSuite extends FunSuite {
 			new Card("8D")
 		))
 
-		assert(h.toString === "2D 2H 3D 5D 8D")
+		assert(h.toString === "8D 5D 3D 2H 2D")
 	}
 
 	test("check that the higher rank hand is greater") {
@@ -42,6 +42,52 @@ class HandSuite extends FunSuite {
 
 		assert(b > a)
 	}
+
+        test("check that the straight flush with higher rank is greater") {
+                val a = new Hand(Array(
+                        new Card("2D"),
+                        new Card("3D"),
+                        new Card("5D"),
+                        new Card("4D"),
+                        new Card("6D")
+                ))
+
+                val b = new Hand(Array(
+                        new Card("3D"),
+                        new Card("4D"),
+                        new Card("5D"),
+                        new Card("6D"),
+                        new Card("7D")
+                ))
+
+		assert(b.isFlush && b.isStraight)
+		assert(a.isFlush && a.isStraight)
+                assert(b > a)
+        }
+
+        test("check that the straight flush is greater than high rank") {
+                val a = new Hand(Array(
+                        new Card("2D"),
+                        new Card("9H"),
+                        new Card("5D"),
+                        new Card("4D"),
+                        new Card("6D")
+                ))
+
+                val b = new Hand(Array(
+                        new Card("3D"),
+                        new Card("4D"),
+                        new Card("5D"),
+                        new Card("6D"),
+                        new Card("7D")
+                ))
+
+                assert(b.isFlush && b.isStraight)
+                assert(!a.isFlush && !a.isStraight)
+                assert(b > a)
+        }
+
+
 
 	test("check that a hand is straight") {
                 val a = new Hand(Array(
