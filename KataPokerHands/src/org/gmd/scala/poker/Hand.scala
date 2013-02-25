@@ -85,8 +85,47 @@ class Hand (h: Array[Card]) extends Ordered[Hand]{
 		}
 	}
 
+	object SinglePairOrdering extends Ordering[Hand] with FilterOrDelegateOrdering {
+		def compare (a: Hand, b: Hand) = filterOrDelegate(a, b, (h: Hand) => h.twoOfAKind(-1), HigherRankOrdering)
+	}
+
+	object TwoPairsOrdering extends Ordering[Hand] {
+		def compare(a: Hand, b: Hand) = {
+			var game = Array(a, b)
+			val filteredHands = game.filter((h: Hand) => h.twoOfAKind(-1) != -1 && h.twoOfAKind(h.twoOfAKind) != -1)
+			if(filteredHands.length == 2){
+				val firstPairDiff = a.twoOfAKind(-1) - b.twoOfAKind(-1)
+				val secondPairDiff = a.twoOfAKind(a.twoOfAKind(-1)) - b.twoOfAKind(b.twoOfAKind(-1))
+				if(firstPairDiff != 0) {
+					firstPairDiff
+				} else if(secondPairDiff != 0){
+					secondPairDiff
+				} else {
+					HigherRankOrdering.compare(a, b)
+				}
+			} else if (filteredHands.length == 1){
+				if(filteredHands(0) eq a) 1 else -1
+			} else {
+				SinglePairOrdering.compare(a, b)
+			}
+		}
+
+	}
+
+	object ThreeOfAKindOrdering extends Ordering[Hand] with FilterOrDelegateOrdering {
+                def compare (a: Hand, b: Hand) = filterOrDelegate(a, b, (h: Hand) => h.threeOfAKind, TwoPairsOrdering)
+        }
+
+	object StraightOrdering extends Ordering[Hand] with FilterOrDelegateOrdering {
+		def compare (a: Hand, b: Hand) = filterOrDelegate(a, b, (h: Hand) => if(h.isStraight) h.cards(0).value else -1, ThreeOfAKindOrdering)
+	}	
+
+	object FlushOrdering extends Ordering[Hand] with FilterOrDelegateOrdering {
+		def compare (a: Hand, b: Hand) = filterOrDelegate(a, b, (h: Hand) => if(h.isFlush) 0 else -1, StraightOrdering)
+	}
+
 	object FullHouseOrdering extends Ordering[Hand] with FilterOrDelegateOrdering {
-		def compare (a: Hand, b: Hand) = filterOrDelegate(a, b, (h: Hand) => if(h.threeOfAKind != -1 && h.twoOfAKind(h.threeOfAKind) != -1) h.threeOfAKind else -1, HigherRankOrdering) 
+		def compare (a: Hand, b: Hand) = filterOrDelegate(a, b, (h: Hand) => if(h.threeOfAKind != -1 && h.twoOfAKind(h.threeOfAKind) != -1) h.threeOfAKind else -1, FlushOrdering) 
 	}
 
 	object StraightFlashOrdering extends Ordering[Hand] with FilterOrDelegateOrdering{				        	
