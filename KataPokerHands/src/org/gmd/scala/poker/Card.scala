@@ -1,7 +1,8 @@
 package org.gmd.scala.poker
 
 class Card (c: String) extends Ordered[Card]{
-	require(c.length == 2)
+	val canonical = c.toUpperCase
+	require(canonical.length == 2)	
 	require(value != -1)
 	require(suit != null)
 
@@ -12,7 +13,7 @@ class Card (c: String) extends Ordered[Card]{
 			this.value - that.value
 	}
 	
-	def suit = c(1) match {
+	def suit = canonical(1) match {
 		case 'C' => "clubs"
 		case 'D' => "diamonds"
 		case 'H' => "hearts"
@@ -20,7 +21,7 @@ class Card (c: String) extends Ordered[Card]{
 		case _ => null
 	}
 
-	def value = c(0) match {
+	def value = canonical(0) match {
 		case '2' => 2
 		case '3' => 3
 		case '4' => 4

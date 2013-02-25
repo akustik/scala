@@ -175,7 +175,7 @@ class Hand (h: Array[Card]) extends Ordered[Hand]{
 	}
 
 	object FourOfAKindOrdering extends Ordering[Hand] with FilterOrDelegateOrdering{
-		def compare(a: Hand, b: Hand) = filterOrDelegate(a, b, (h: Hand) => h.fourOfAKind, FullHouseOrdering)
+		def compare (a: Hand, b: Hand) = filterOrDelegate(a, b, (h: Hand) => h.fourOfAKind, FullHouseOrdering)	
 	}
 	
 }
