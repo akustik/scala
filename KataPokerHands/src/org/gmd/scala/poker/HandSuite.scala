@@ -12,6 +12,12 @@ class HandSuite extends FunSuite {
 		}
 	}
 
+	test("create a map of hands given a formatted string") {
+		val hands = Hand.parse("Black: 2H 3D 5S 9C KD White: 2C 3H 4S 8C AH")		
+		assert(hands.get("Black").getOrElse("None").toString === "KD 9C 5S 3D 2H") 
+		assert(hands.get("White").getOrElse("None").toString === "AH 8C 4S 3H 2C")		
+	}
+
 	test("create a valid hand a check the toString output") {
 		val h = new Hand(Array(
 			new Card("2D"),
@@ -320,7 +326,6 @@ class HandSuite extends FunSuite {
 
 		)
 
-//		println("actual: " + hands.toString)				
 		assert(hands.toString === "TreeSet("
 			+ "9D 8D 7H 6D 2D, "
 			+ "8D 7S 4H 3S 3D, "
@@ -337,6 +342,34 @@ class HandSuite extends FunSuite {
 			+ "7D 6D 5D 4D 3D, "
 			+ "9D 8D 7D 6D 5D)")
 	}
+
+	test("check that the expected hand of the expression wins (1)") {
+		val hands = Hand.parse("Black: 2H 3D 5S 9C KD White: 2C 3H 4S 8C AH") 
+		val w: Hand = hands.get("White").get
+		val b: Hand = hands.get("Black").get
+		assert(w > b)
+	}
+
+        test("check that the expected hand of the expression wins (2)") {
+                val hands = Hand.parse("Black: 2H 4S 4C 2D 4H White: 2S 8S AS QS 3S")
+                val w: Hand = hands.get("White").get        
+                val b: Hand = hands.get("Black").get               
+                assert(w < b)
+        }
+
+        test("check that the expected hand of the expression wins (3)") {
+                val hands = Hand.parse("Black: 2H 3D 5S 9C KD White: 2C 3H 4S 8C KH")
+                val w: Hand = hands.get("White").get
+                val b: Hand = hands.get("Black").get
+                assert(w < b)
+        }
+
+        test("check that the expected hand of the expression wins (4)") {
+                val hands = Hand.parse("Black: 2H 3D 5S 9C KD White: 2D 3H 5C 9S KH")
+                val w: Hand = hands.get("White").get
+                val b: Hand = hands.get("Black").get
+                assert(w <= b && b <= w)
+        }
 
 
 }

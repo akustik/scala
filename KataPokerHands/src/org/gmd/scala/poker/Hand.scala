@@ -3,6 +3,31 @@ package org.gmd.scala.poker
 import scala.collection.immutable.TreeSet
 import scala.collection.mutable.HashMap
 
+object Hand {
+
+	def parse(s: String): HashMap[String, Hand] = {
+		val m = new HashMap[String, Hand]()
+		val pieces = s.split(' ')
+		require(pieces.length % 6 == 0)
+		for(i <- 0 until pieces.length / 6) {
+			val h = new Hand(
+					Array(	
+						new Card(pieces(i*6+1)),
+						new Card(pieces(i*6+2)),					
+						new Card(pieces(i*6+3)),
+						new Card(pieces(i*6+4)),
+						new Card(pieces(i*6+5))
+					)
+			)
+			val player = pieces(i*6).slice(0, pieces(i*6).length - 1)
+			m.put(player, h)
+		}
+		m
+	}
+
+	def verbose = false
+}
+
 class Hand (h: Array[Card]) extends Ordered[Hand]{
 	require(h.length == 5)
 	val cards = TreeSet(h(0), h(1), h(2), h(3), h(4)).toArray.reverse
@@ -59,13 +84,17 @@ class Hand (h: Array[Card]) extends Ordered[Hand]{
 
 	trait FilterOrDelegateOrdering {
 
+		def name = this.getClass.getSimpleName
+
 		def filterOrDelegate(a: Hand, b: Hand, f: (Hand) => Int, d: Ordering[Hand]): Int = {
 			val game = Array(a, b)
 			val appliesFn = (h: Hand) => f(h) != -1
                         val filteredHands = game.filter(appliesFn)
                         if(filteredHands.length != 0){
+				if(Hand.verbose) println(name + ": Match")
                                 f(a) - f(b)
 			} else {
+				if(Hand.verbose) println(name + ": Delegate")
                                 d.compare(a, b)
                         }
 		}
@@ -77,11 +106,16 @@ class Hand (h: Array[Card]) extends Ordered[Hand]{
 			higherCard(a.cards, b.cards)
 		}
 
+		def name = this.getClass.getSimpleName
+
 		private def higherCard(a: Array[Card], b: Array[Card]): Int = {
-			if(a.length == 1 || a(0).value != b(0).value)
+			if(a.length == 1 || a(0).value != b(0).value){
+				if(Hand.verbose) println(name + ": Match")
 				a(0).value - b(0).value
-			else
+			} else {
+				if(Hand.verbose) println(name + ": Delegate")
 				higherCard(a.slice(1, a.length), b.slice(1, b.length))
+			}
 		}
 	}
 
@@ -90,6 +124,9 @@ class Hand (h: Array[Card]) extends Ordered[Hand]{
 	}
 
 	object TwoPairsOrdering extends Ordering[Hand] {
+		
+		def name = this.getClass.getSimpleName
+		
 		def compare(a: Hand, b: Hand) = {
 			var game = Array(a, b)
 			val filteredHands = game.filter((h: Hand) => h.twoOfAKind(-1) != -1 && h.twoOfAKind(h.twoOfAKind) != -1)
@@ -97,15 +134,20 @@ class Hand (h: Array[Card]) extends Ordered[Hand]{
 				val firstPairDiff = a.twoOfAKind(-1) - b.twoOfAKind(-1)
 				val secondPairDiff = a.twoOfAKind(a.twoOfAKind(-1)) - b.twoOfAKind(b.twoOfAKind(-1))
 				if(firstPairDiff != 0) {
+					if(Hand.verbose) println(name + ": Match")
 					firstPairDiff
 				} else if(secondPairDiff != 0){
+					if(Hand.verbose) println(name + ": Match")
 					secondPairDiff
 				} else {
+					if(Hand.verbose) println(name + ": Delegate")
 					HigherRankOrdering.compare(a, b)
 				}
 			} else if (filteredHands.length == 1){
+				if(Hand.verbose) println(name + ": Match")
 				if(filteredHands(0) eq a) 1 else -1
 			} else {
+				if(Hand.verbose) println(name + ": Delegate")
 				SinglePairOrdering.compare(a, b)
 			}
 		}
