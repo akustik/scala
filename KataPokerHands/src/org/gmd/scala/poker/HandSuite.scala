@@ -1,6 +1,7 @@
 package org.gmd.scala.poker
 
 import org.scalatest.FunSuite
+import scala.collection.immutable.TreeSet
 
 class HandSuite extends FunSuite {
 
@@ -174,5 +175,83 @@ class HandSuite extends FunSuite {
 		assert(a.twoOfAKind(3) === 2)
         }
 
+        test("check that a four of a kind with highest rank wins another four of a kind") {
+                val a = new Hand(Array(
+                        new Card("2D"),
+                        new Card("2H"),
+                        new Card("2S"),
+                        new Card("2C"),
+                        new Card("6D")
+                ))
+
+                val b = new Hand(Array(
+                        new Card("3D"),
+                        new Card("3H"),
+                        new Card("3S"),
+                        new Card("3C"),
+                        new Card("7D")
+                ))
+
+
+                assert(a < b)                
+        }
+
+        test("check that a full house with highest rank wins another full house"){
+                val a = new Hand(Array(
+                        new Card("2D"),
+                        new Card("2H"),
+                        new Card("2S"),
+                        new Card("6C"),
+                        new Card("6D")
+                ))
+
+                val b = new Hand(Array(
+                        new Card("3D"),
+                        new Card("3H"),
+                        new Card("3S"),
+                        new Card("4C"),
+                        new Card("4D")
+                ))
+
+
+                assert(a < b)
+        }
+
+	test("check the order of serveral hands") {
+		val hands = TreeSet(
+			new Hand(Array(
+				new Card("3D"),
+				new Card("4D"),
+				new Card("5D"),
+				new Card("6D"),
+				new Card("7D")
+			)),
+                        new Hand(Array(
+                                new Card("3D"),
+                                new Card("3C"),
+                                new Card("3H"),
+                                new Card("8D"),
+                                new Card("8H")
+                        )),
+                        new Hand(Array(
+                                new Card("5D"),
+                                new Card("5H"),
+                                new Card("5S"),
+                                new Card("5C"),
+                                new Card("7D")
+                        )),
+                        new Hand(Array(
+                                new Card("5D"),
+                                new Card("6D"),
+                                new Card("7D"),
+                                new Card("8D"),
+                                new Card("9D")
+                        ))
+		)
+
+		assert(hands.toString === "TreeSet(8H 8D 3H 3D 3C, 7D 5S 5H 5D 5C, 7D 6D 5D 4D 3D, 9D 8D 7D 6D 5D)")
+	}
+
 
 }
+

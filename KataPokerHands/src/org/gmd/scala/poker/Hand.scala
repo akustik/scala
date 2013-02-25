@@ -36,7 +36,7 @@ class Hand (h: Array[Card]) extends Ordered[Hand]{
 
 
 	def compare(that: Hand) = {
-		0
+		StraightFlashOrdering.compare(this, that)		
 	}
 
 	def isStraight = values.size == 5 && (for(i <- 0 until 4) yield (cards(i).value - 1 == cards(i+1).value)).foldLeft(true)(_ && _)
@@ -57,6 +57,21 @@ class Hand (h: Array[Card]) extends Ordered[Hand]{
 
 	override def toString = cards.mkString(" ")
 
+	trait FilterOrDelegateOrdering {
+
+		def filterOrDelegate(a: Hand, b: Hand, f: (Hand) => Int, d: Ordering[Hand]): Int = {
+			val game = Array(a, b)
+			val appliesFn = (h: Hand) => f(h) != -1
+                        val filteredHands = game.filter(appliesFn)
+                        if(filteredHands.length != 0){
+                                f(a) - f(b)
+			} else {
+                                d.compare(a, b)
+                        }
+		}
+
+	}
+
 	object HigherRankOrdering extends Ordering[Hand] {
 		def compare(a: Hand, b: Hand) = {
 			higherCard(a.cards, b.cards)
@@ -70,19 +85,16 @@ class Hand (h: Array[Card]) extends Ordered[Hand]{
 		}
 	}
 
-	object StraightFlashOrdering extends Ordering[Hand] {				        	
-		def compare(a: Hand, b: Hand) = {
-	                val game = Array(a, b)
-        	        val straightFlushHands = game.filter(hand => hand.isStraight && hand.isFlush)
-                	if(straightFlushHands.length == 2){
-	                        straightFlushHands(0).cards(0).value -  straightFlushHands(1).cards(0).value
-        	        } else if(straightFlushHands.length == 1) {
-                	        if(straightFlushHands(0) eq a) 1 else - 1
-	                } else {
-        	                HigherRankOrdering.compare(a, b)
-                	}
+	object FullHouseOrdering extends Ordering[Hand] with FilterOrDelegateOrdering {
+		def compare (a: Hand, b: Hand) = filterOrDelegate(a, b, (h: Hand) => if(h.threeOfAKind != -1 && h.twoOfAKind(h.threeOfAKind) != -1) h.threeOfAKind else -1, HigherRankOrdering) 
+	}
 
-		}		
+	object StraightFlashOrdering extends Ordering[Hand] with FilterOrDelegateOrdering{				        	
+		def compare (a: Hand, b: Hand) = filterOrDelegate(a, b, (h: Hand) => if(h.isStraight && h.isFlush) h.cards(0).value else -1, FourOfAKindOrdering)
+	}
+
+	object FourOfAKindOrdering extends Ordering[Hand] with FilterOrDelegateOrdering{
+		def compare(a: Hand, b: Hand) = filterOrDelegate(a, b, (h: Hand) => h.fourOfAKind, FullHouseOrdering)
 	}
 	
 }
