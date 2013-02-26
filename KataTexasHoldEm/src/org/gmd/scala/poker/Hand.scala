@@ -11,6 +11,7 @@ class Hand (h: Array[Card]){
 }
 
 trait Ranked extends Ordered[Ranked]{
+	def hand: Hand
 	def name: String
 	def value: Int
 	def applies: Boolean
@@ -18,7 +19,7 @@ trait Ranked extends Ordered[Ranked]{
 	def compareSameRank(that: Ranked): Int
 	def usedCards: Array[Card]
 	def nonUsedCards: Array[Card]
-	override def toString: String = usedCards.toString + " " + nonUsedCards
+	override def toString: String = "%s(%d): %s => %s | %s".format(name, value, applies, usedCards.mkString(" "), nonUsedCards.mkString(" "))
 
 	def flushFilter(c: Array[Card]) = {
 		val map = c.groupBy[String](x => x.suit)
@@ -76,31 +77,67 @@ trait Ranked extends Ordered[Ranked]{
 }
 
 object RankedFactory {
+
+	def rank(s: String): String = {
+		val players = s.split("\n")
+		val ranks = players.map(p => build(new Hand(Card.parse(p))))
+		val winner = ranks.max[Ranked]
+		ranks.map(r => {
+			val uc =  r.usedCards.mkString(" ")
+			val nuc = r.nonUsedCards.mkString(" ")
+			val name = r.name
+			val applies = r.hand.cards.length == 7
+			
+			if(applies && r == winner)
+				"%s %s %s (winner)".format(uc, nuc, name)
+			else if(applies)
+				"%s %s %s".format(uc, nuc, name)
+			else if(uc.length > 0 && nuc.length > 0)
+				"%s %s".format(uc, nuc)
+			else 
+				"%s".format(nuc)
+		}).mkString("\n")
+	}
+
 	def build(h: Hand): Ranked = {
 		val rankings = Array[Ranked](
 			new StraightFlushRanked(h),
-			new HighCardRanked(h),
-			new FourOfAKindRanked(h)
+			new FourOfAKindRanked(h),
+			new FullHouseRanked(h),
+			new FlushRanked(h),
+			new StraightRanked(h),
+			new ThreeOfAKindRanked(h),
+			new TwoPairsRanked(h),
+			new PairRanked(h),
+			new HighCardRanked(h)
 		)
 
-		rankings.filter(x => x.applies)(0) 
+		rankings.filter(x => {
+			//println(x)
+			x.applies			
+		})(0) 
 	}
 }
 
 class StraightFlushRanked(h: Hand) extends Ranked {
 	val ff = flushFilter(h.cards)
 	val sf = straightFilter(ff._1)
+	val uc = if(sf._1.length > 5) sf._1.slice(0, 5) else sf._1
+	val nuc = if(sf._1.length > 5) sf._1.slice(5, sf._1.length) ++ sf._2 ++ ff._2 else sf._2 ++ ff._2
+	Sorting.quickSort(nuc)
+	val rnuc = nuc.reverse
 	def name = "Straight Flush"
 	def value = 9
 	def applies: Boolean = {
-		sf._1.length >= 5
+		uc.length == 5
 	}
 	def compareSameRank(that: Ranked): Int = {
-		kickerDecision(usedCards(0) +: nonUsedCards,
-			that.usedCards(0) +: that.nonUsedCards)
+		kickerDecision(Array(usedCards(0)), 
+				Array(that.usedCards(0)))
 	}
-	def usedCards: Array[Card] = sf._1
-        def nonUsedCards: Array[Card] = sf._2 ++ ff._2
+	def usedCards: Array[Card] = uc
+        def nonUsedCards: Array[Card] = rnuc
+	def hand: Hand = h
 }
 
 class FourOfAKindRanked(h: Hand) extends Ranked {
@@ -108,15 +145,119 @@ class FourOfAKindRanked(h: Hand) extends Ranked {
         def name = "Four Of A Kind"
         def value = 8
         def applies: Boolean = {
-                af._1.length >= 4
+                af._1.length == 4
         }
         def compareSameRank(that: Ranked): Int = {
-                kickerDecision(usedCards(0) +: nonUsedCards,
-                        that.usedCards(0) +: that.nonUsedCards)
+                kickerDecision(Array(usedCards(0), nonUsedCards(0)),
+                        Array(that.usedCards(0), that.nonUsedCards(0)))
 	}
         def usedCards: Array[Card] = af._1
         def nonUsedCards: Array[Card] = af._2
+        def hand: Hand = h
 }
+
+class FullHouseRanked(h: Hand) extends Ranked {
+	val af3 = amountFilter(h.cards, 3)
+	val af2 = amountFilter(af3._2, 2)
+	def name = "Full House"
+	def value = 7
+	def applies: Boolean = {
+		af3._1.length == 3 && af2._1.length == 2
+	}
+	def compareSameRank(that: Ranked): Int = {
+		kickerDecision(usedCards, that.usedCards)
+        }
+        def usedCards: Array[Card] = af3._1 ++ af2._1
+        def nonUsedCards: Array[Card] = af2._2
+        def hand: Hand = h
+}
+
+class FlushRanked(h: Hand) extends Ranked {
+        val ff = flushFilter(h.cards)
+	val uc = if(ff._1.length > 5) ff._1.slice(0, 5) else ff._1
+	val nuc = if(ff._1.length > 5) ff._1.slice(5, ff._1.length) ++ ff._2 else ff._2
+        def name = "Flush"
+        def value = 6
+        def applies: Boolean = {
+		uc.length == 5
+        }
+        def compareSameRank(that: Ranked): Int = {
+                kickerDecision(usedCards, that.usedCards)
+        }
+        def usedCards: Array[Card] = uc
+        def nonUsedCards: Array[Card] = nuc
+        def hand: Hand = h
+}
+
+class StraightRanked(h: Hand) extends Ranked {
+        val sf = straightFilter(h.cards)
+        val uc = if(sf._1.length > 5) sf._1.slice(0, 5) else sf._1
+        val nuc = if(sf._1.length > 5) sf._1.slice(5, sf._1.length) ++ sf._2 else sf._2
+        def name = "Straight"
+        def value = 5
+        def applies: Boolean = {
+                uc.length == 5
+        }
+        def compareSameRank(that: Ranked): Int = {
+                kickerDecision(Array(usedCards(0)), Array(that.usedCards(0)))
+        }
+        def usedCards: Array[Card] = uc
+        def nonUsedCards: Array[Card] = nuc
+        def hand: Hand = h
+}
+
+class ThreeOfAKindRanked(h: Hand) extends Ranked {
+        val af = amountFilter(h.cards, 3)
+        def name = "Three Of A Kind"
+        def value = 4
+        def applies: Boolean = {
+                af._1.length == 3
+        }
+        def compareSameRank(that: Ranked): Int = {
+                kickerDecision(Array(usedCards(0), nonUsedCards(0), nonUsedCards(1)),
+                        Array(that.usedCards(0), that.nonUsedCards(0), that.nonUsedCards(1)))
+        }
+        def usedCards: Array[Card] = af._1
+        def nonUsedCards: Array[Card] = af._2
+        def hand: Hand = h
+}
+
+class TwoPairsRanked(h: Hand) extends Ranked {
+        val af1 = amountFilter(h.cards, 2)
+	val af2 = amountFilter(af1._2, 2)
+	val uc = af1._1 ++ af2._1
+	val nuc = af2._2
+        def name = "Two pairs"
+        def value = 3
+        def applies: Boolean = {
+                uc.length == 4
+        }
+        def compareSameRank(that: Ranked): Int = {
+                kickerDecision(usedCards :+ nonUsedCards(0), that.usedCards :+ that.nonUsedCards(0))
+        }
+        def usedCards: Array[Card] = uc
+        def nonUsedCards: Array[Card] = nuc
+        def hand: Hand = h
+}
+
+class PairRanked(h: Hand) extends Ranked {
+        val af = amountFilter(h.cards, 2)
+        val uc = af._1
+        val nuc = af._2
+        def name = "Pair"
+        def value = 2
+        def applies: Boolean = {
+                uc.length == 2
+        }
+        def compareSameRank(that: Ranked): Int = {
+                kickerDecision(usedCards(0) +: nonUsedCards.slice(0,3), 
+			that.usedCards(0) +: that.nonUsedCards.slice(0,3))
+        }
+        def usedCards: Array[Card] = uc
+        def nonUsedCards: Array[Card] = nuc
+        def hand: Hand = h
+}
+
 
 class HighCardRanked(h: Hand) extends Ranked {
 	def name = "High Card"
@@ -127,6 +268,7 @@ class HighCardRanked(h: Hand) extends Ranked {
 	}
 	def usedCards: Array[Card] = Array()
 	def nonUsedCards: Array[Card] = h.cards
+        def hand: Hand = h
 }
 
 
