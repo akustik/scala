@@ -9,6 +9,7 @@ function mkclasspath {
 	echo $result 
 }
 
+rm -fr bin
 mkdir -p bin
 SCALA_FILES=`find . -name "*.scala"`
 SCALA_LIBS=`find lib -name "*.jar"`

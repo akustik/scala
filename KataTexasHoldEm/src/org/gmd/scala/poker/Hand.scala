@@ -145,18 +145,18 @@ private[poker] class StraightFlushRanked(h: Hand) extends Ranked {
 }
 
 private[poker] class FourOfAKindRanked(h: Hand) extends Ranked {
-        val af = amountFilter(h.cards, 4)
+        private val (uc, nuc) = amountFilter(h.cards, 4)
         def name = "Four Of A Kind"
         def value = 8
         def applies: Boolean = {
-                af._1.length == 4
+                uc.length == 4
         }
         def compareSameRank(that: Ranked): Int = {
                 kickerDecision(Array(usedCards(0), nonUsedCards(0)),
                         Array(that.usedCards(0), that.nonUsedCards(0)))
 	}
-        def usedCards: Array[Card] = af._1
-        def nonUsedCards: Array[Card] = af._2
+        def usedCards: Array[Card] = uc
+        def nonUsedCards: Array[Card] = nuc
         def hand: Hand = h
 }
 
@@ -177,9 +177,11 @@ private[poker] class FullHouseRanked(h: Hand) extends Ranked {
 }
 
 private[poker] class FlushRanked(h: Hand) extends Ranked {
-        val ff = flushFilter(h.cards)
-	val uc = if(ff._1.length > 5) ff._1.slice(0, 5) else ff._1
-	val nuc = if(ff._1.length > 5) ff._1.slice(5, ff._1.length) ++ ff._2 else ff._2
+	private val (uc, nuc) = flushFilter(h.cards) match {
+		case (used, remaining) if(used.length > 5) =>
+			 (used.slice(0, 5), used.slice(5, used.length) ++ remaining)
+		case (used, remaining) => (used, remaining)
+	}
         def name = "Flush"
         def value = 6
         def applies: Boolean = {
