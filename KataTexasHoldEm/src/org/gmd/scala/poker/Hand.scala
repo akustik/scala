@@ -4,24 +4,24 @@ import scala.collection.immutable.TreeSet
 import scala.collection.mutable.HashMap
 import scala.util.Sorting
 
-class Hand (h: Array[Card]){
+private[poker] class Hand (h: Array[Card]){
 	require(h.length >= 2 && h.length <= 7)
 	val cards = (new TreeSet[Card]() ++ h).toArray.reverse
 	require(cards.size == h.length)
 }
 
 trait Ranked extends Ordered[Ranked]{
-	def hand: Hand
+	protected[poker] def hand: Hand
 	def name: String
-	def value: Int
-	def applies: Boolean
+	protected[poker] def value: Int
+	protected[poker] def applies: Boolean
 	def compare(that: Ranked) = if(this.value != that.value) this.value - that.value else compareSameRank(that)
-	def compareSameRank(that: Ranked): Int
-	def usedCards: Array[Card]
-	def nonUsedCards: Array[Card]
+	protected[poker] def compareSameRank(that: Ranked): Int
+	protected[poker] def usedCards: Array[Card]
+	protected[poker] def nonUsedCards: Array[Card]
 	override def toString: String = "%s(%d): %s => %s | %s".format(name, value, applies, usedCards.mkString(" "), nonUsedCards.mkString(" "))
 
-	def flushFilter(c: Array[Card]) = {
+	protected final def flushFilter(c: Array[Card]) = {
 		val map = c.groupBy[String](x => x.suit)
 		val flush: Array[Card] = map.find(x => x._2.length >= 5) match {
 			case Some(x) => x._2
@@ -30,7 +30,7 @@ trait Ranked extends Ordered[Ranked]{
 		(flush, c.filterNot(x => flush contains x))
 	}
 
-	def amountFilter(c: Array[Card], min: Int) = {
+	protected final def amountFilter(c: Array[Card], min: Int) = {
 		val map = c.groupBy[Int](x => x.face)
 		val amount: Array[Card] = map.find(x => x._2.length >= min) match {
 		        case Some(x) => x._2
@@ -39,7 +39,7 @@ trait Ranked extends Ordered[Ranked]{
                 (amount, c.filterNot(x => amount contains x))
 	}
 
-	def straightFilter(c: Array[Card]): (Array[Card], Array[Card]) = {		
+	protected final def straightFilter(c: Array[Card]): (Array[Card], Array[Card]) = {		
 		val al2c = straightFilter(
 			new TreeSet[Card]()(AceAsLowerOneCardValueOrdering) ++ c,
 			(x: Card) => x.lValue
@@ -51,7 +51,7 @@ trait Ranked extends Ordered[Ranked]{
 		if(ah2c._1.length >= al2c._1.length) ah2c else al2c
 	}
 
-	def straightFilter(t: TreeSet[Card], f: Card => Int): (Array[Card], Array[Card]) = {		
+	protected final def straightFilter(t: TreeSet[Card], f: Card => Int): (Array[Card], Array[Card]) = {		
 		val cards = t.toArray.reverse
 		val sc: Array[Card] = cards.filter(x => {
 			val idx = cards.indexOf(x)
@@ -66,7 +66,7 @@ trait Ranked extends Ordered[Ranked]{
 		(sc, cards.filterNot(x => sc contains x))		
 	}
 
-	def kickerDecision(a: Array[Card], b: Array[Card]): Int = {
+	protected final def kickerDecision(a: Array[Card], b: Array[Card]): Int = {
 		if(a(0).face != b(0).face || a.length == 1 || b.length == 1)
 			a(0).face - b(0).face
 		else
@@ -99,6 +99,10 @@ object RankedFactory {
 		}).mkString("\n")
 	}
 
+	def build(s: String): Ranked = {
+		build(new Hand(Card.parse(s)))
+	}
+
 	def build(h: Hand): Ranked = {
 		val rankings = Array[Ranked](
 			new StraightFlushRanked(h),
@@ -119,7 +123,7 @@ object RankedFactory {
 	}
 }
 
-class StraightFlushRanked(h: Hand) extends Ranked {
+private[poker] class StraightFlushRanked(h: Hand) extends Ranked {
 	val ff = flushFilter(h.cards)
 	val sf = straightFilter(ff._1)
 	val uc = if(sf._1.length > 5) sf._1.slice(0, 5) else sf._1
@@ -140,7 +144,7 @@ class StraightFlushRanked(h: Hand) extends Ranked {
 	def hand: Hand = h
 }
 
-class FourOfAKindRanked(h: Hand) extends Ranked {
+private[poker] class FourOfAKindRanked(h: Hand) extends Ranked {
         val af = amountFilter(h.cards, 4)
         def name = "Four Of A Kind"
         def value = 8
@@ -156,7 +160,7 @@ class FourOfAKindRanked(h: Hand) extends Ranked {
         def hand: Hand = h
 }
 
-class FullHouseRanked(h: Hand) extends Ranked {
+private[poker] class FullHouseRanked(h: Hand) extends Ranked {
 	val af3 = amountFilter(h.cards, 3)
 	val af2 = amountFilter(af3._2, 2)
 	def name = "Full House"
@@ -172,7 +176,7 @@ class FullHouseRanked(h: Hand) extends Ranked {
         def hand: Hand = h
 }
 
-class FlushRanked(h: Hand) extends Ranked {
+private[poker] class FlushRanked(h: Hand) extends Ranked {
         val ff = flushFilter(h.cards)
 	val uc = if(ff._1.length > 5) ff._1.slice(0, 5) else ff._1
 	val nuc = if(ff._1.length > 5) ff._1.slice(5, ff._1.length) ++ ff._2 else ff._2
@@ -189,7 +193,7 @@ class FlushRanked(h: Hand) extends Ranked {
         def hand: Hand = h
 }
 
-class StraightRanked(h: Hand) extends Ranked {
+private[poker] class StraightRanked(h: Hand) extends Ranked {
         val sf = straightFilter(h.cards)
         val uc = if(sf._1.length > 5) sf._1.slice(0, 5) else sf._1
         val nuc = if(sf._1.length > 5) sf._1.slice(5, sf._1.length) ++ sf._2 else sf._2
@@ -206,7 +210,7 @@ class StraightRanked(h: Hand) extends Ranked {
         def hand: Hand = h
 }
 
-class ThreeOfAKindRanked(h: Hand) extends Ranked {
+private[poker] class ThreeOfAKindRanked(h: Hand) extends Ranked {
         val af = amountFilter(h.cards, 3)
         def name = "Three Of A Kind"
         def value = 4
@@ -222,7 +226,7 @@ class ThreeOfAKindRanked(h: Hand) extends Ranked {
         def hand: Hand = h
 }
 
-class TwoPairsRanked(h: Hand) extends Ranked {
+private[poker] class TwoPairsRanked(h: Hand) extends Ranked {
         val af1 = amountFilter(h.cards, 2)
 	val af2 = amountFilter(af1._2, 2)
 	val uc = af1._1 ++ af2._1
@@ -240,7 +244,7 @@ class TwoPairsRanked(h: Hand) extends Ranked {
         def hand: Hand = h
 }
 
-class PairRanked(h: Hand) extends Ranked {
+private[poker] class PairRanked(h: Hand) extends Ranked {
         val af = amountFilter(h.cards, 2)
         val uc = af._1
         val nuc = af._2
@@ -259,7 +263,7 @@ class PairRanked(h: Hand) extends Ranked {
 }
 
 
-class HighCardRanked(h: Hand) extends Ranked {
+private[poker] class HighCardRanked(h: Hand) extends Ranked {
 	def name = "High Card"
 	def value = 1
 	def applies: Boolean = true

@@ -1,13 +1,13 @@
 package org.gmd.scala.poker
 
-object Card {
+private[poker] object Card {
 	def parse(s: String): Array[Card] = {
 		val pieces = s.split(' ')
 		pieces.map(x => new Card(x))
 	}
 }
 
-class Card (c: String) extends Ordered[Card]{
+private[poker] class Card (c: String) extends Ordered[Card]{
 	require(c.length == 2)	
 	require(face != -1)
 	require(suit != null)
@@ -53,14 +53,14 @@ class Card (c: String) extends Ordered[Card]{
 	override def toString = c
 }
 
-object AceAsLowerOneCardValueOrdering extends Ordering[Card] {
+private[poker] object AceAsLowerOneCardValueOrdering extends Ordering[Card] {
         def compare(a: Card, b: Card) = a.lValue compare b.lValue
 }
 
-object AceAsThirteenCardValueOrdering extends Ordering[Card] {
+private[poker] object AceAsThirteenCardValueOrdering extends Ordering[Card] {
         def compare(a: Card, b: Card) = a.face compare b.face
 }
 
-object CardColorOrdering extends Ordering[Card] {
+private[poker] object CardColorOrdering extends Ordering[Card] {
 	def compare(a: Card, b: Card) = a.suit compare b.suit
 }
