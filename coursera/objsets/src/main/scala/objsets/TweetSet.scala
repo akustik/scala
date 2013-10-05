@@ -139,10 +139,19 @@ class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
   def filterAcc(p: Tweet => Boolean, acc: TweetSet): TweetSet =
     left.filterAcc(p, right.filterAcc(p, if (p(elem)) acc.incl(elem) else acc))
 
-  def union(that: TweetSet): TweetSet = right.union(left.union(that.incl(elem)))
+  def union(that: TweetSet): TweetSet = {
+    val acc = that.incl(elem)
+    val acc2 = left.union(acc)
+    val acc3 = right.union(acc2)
+    acc3
+  }
 
-  def mostRetweetedCandidate(candidate: Tweet): Tweet =
-    (left union right).mostRetweetedCandidate(if (elem.retweets > candidate.retweets) elem else candidate)
+  def mostRetweetedCandidate(candidate: Tweet): Tweet = {
+    val c1 = if (elem.retweets > candidate.retweets) elem else candidate
+    val c2 = left.mostRetweetedCandidate(c1)
+    val c3 = right.mostRetweetedCandidate(c2)
+    c3
+  }
 
   def descendingByRetweetAcc(t: TweetList): TweetList =
     this.remove(mostRetweeted).descendingByRetweetAcc(new Cons(mostRetweeted, t))
@@ -222,5 +231,7 @@ object GoogleVsApple {
 
 object Main extends App {
   // Print the trending tweets
-  GoogleVsApple.googleTweets foreach println
+  println("begin trending: " + new java.util.Date())
+  GoogleVsApple.trending foreach println
+  println("end trending: " + new java.util.Date())
 }
