@@ -1,16 +1,16 @@
 scala
 ==========
 
-= Katas =
+## Katas
 * Fizzbuzz
 * KataPokerHands
 * KataPokerHandsEm
 
-= Coursera =
-* progfun (003)
+## Coursera 
+* progfun (003), see [course](https://class.coursera.org/progfun-003/class)
 
-= Frameworks = 
+## Frameworks
 * [Play framework](http://www.playframework.com)
 
-= Resources =
+## Resources =
 * [Cheatseet](CheatSheet.md)
