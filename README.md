@@ -9,8 +9,15 @@ scala
 ## Coursera 
 * progfun (003), see [course](https://class.coursera.org/progfun-003/class)
 
+## Interesting about scala
+* Akka (actors, futures)
+* Streams
+* Behaviour testing
+
 ## Frameworks
 * [Play framework](http://www.playframework.com)
+* [Spray.io](http://spray.io)
+* [Blueeyes](https://github.com/jdegoes/blueeyes)
 
 ## Resources
 * [Cheatsheet](CheatSheet.md)
@@ -23,3 +30,4 @@ scala
 * [Structure and Interpretation of Computer Programs](http://mitpress.mit.edu/sicp/)
 * [Programming in Scala](http://www.artima.com/pins1ed/)
 * [Scala by Example](http://www.scala-lang.org/docu/files/ScalaByExample.pdf)
+
