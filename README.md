@@ -18,6 +18,7 @@ scala
 * [Play framework](http://www.playframework.com)
 * [Spray.io](http://spray.io)
 * [Blueeyes](https://github.com/jdegoes/blueeyes)
+* [sbt](http://www.scala-sbt.org/)
 
 ## Resources
 * [Cheatsheet](CheatSheet.md)
