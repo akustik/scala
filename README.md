@@ -19,6 +19,7 @@ scala
 * [Spray.io](http://spray.io)
 * [Blueeyes](https://github.com/jdegoes/blueeyes)
 * [sbt](http://www.scala-sbt.org/)
+* [Scalatest](http://www.scalatest.org/user_guide/writing_your_first_test)
 
 ## Resources
 * [Cheatsheet](CheatSheet.md)
