@@ -122,7 +122,7 @@ object Anagrams {
       }
     }
 
-    doSubstract(x.toMap, y).toList.filter(x => x._2 > 0)
+    doSubstract(x.toMap, y).toList.filter(x => x._2 > 0).sortWith((x, y) => x._1 < y._1)
   }
 
   /** Returns a list of all anagram sentences of the given sentence.
@@ -166,15 +166,26 @@ object Anagrams {
    *  Note: There is only one anagram of an empty sentence.
    */
   def sentenceAnagrams(sentence: Sentence): List[Sentence] = {
-
+    
     def doSentenceAnagrams(occurrences: Occurrences, sentences: List[Sentence]): List[Sentence] = {
-      if(occurrences.size == 0) sentences
+      if(occurrences.size == 0) {
+        sentences
+      }
       else {
-        for {
+        val wordsAndCombination = for {
           combination <- combinations(occurrences)
-          words <- dictionaryByOccurrences.getOrElse(combination, List())
-          word <- words
-        } yield doSentenceAnagrams(subtract(occurrences, combination), sentences.map(xs => word :: xs))
+          someWords <- dictionaryByOccurrences.get(combination)
+          if(!someWords.isEmpty)
+          words <- Some(someWords)
+          word <- Some(words)
+        } yield (word, combination)
+        
+        val allSentences = for (
+          (wordList, combination) <- wordsAndCombination; 
+          word <- wordList
+        ) yield doSentenceAnagrams(subtract(occurrences, combination), if(sentences.isEmpty) List(List(word)) else sentences.map(s => word :: s))
+        
+        allSentences.flatten
       }
     }
 
