@@ -168,24 +168,22 @@ object Anagrams {
   def sentenceAnagrams(sentence: Sentence): List[Sentence] = {
     
     def doSentenceAnagrams(occurrences: Occurrences, sentences: List[Sentence]): List[Sentence] = {
-      if(occurrences.size == 0) {
-        sentences
-      }
+      if(occurrences.size == 0) sentences
       else {
-        val wordsAndCombination = for {
+        val foundWordLists = for {
           combination <- combinations(occurrences)
           someWords <- dictionaryByOccurrences.get(combination)
-          if(!someWords.isEmpty)
           words <- Some(someWords)
-          word <- Some(words)
-        } yield (word, combination)
+        } yield (words, combination)
         
-        val allSentences = for (
-          (wordList, combination) <- wordsAndCombination; 
+        (for (
+          (wordList, combination) <- foundWordLists; 
           word <- wordList
-        ) yield doSentenceAnagrams(subtract(occurrences, combination), if(sentences.isEmpty) List(List(word)) else sentences.map(s => word :: s))
-        
-        allSentences.flatten
+        ) yield doSentenceAnagrams(
+            subtract(occurrences, combination), 
+            if(sentences.isEmpty) List(List(word)) 
+            else sentences.map(s => word :: s))
+        ).flatten
       }
     }
 
