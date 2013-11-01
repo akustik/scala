@@ -7,7 +7,16 @@ scala
 * KataPokerHandsEm
 
 ## Coursera 
-* progfun (003), see [course](https://class.coursera.org/progfun-003/class)
+* [Functional Programming Principles in Scala](https://class.coursera.org/progfun-003/class)
+<pre>
+Functions & evaluation: Evaluation strategies, scope, tail recursion
+Higher order functions: Higher order functions, currying, evaluation & operators
+Data and abstraction: Scala class hierarchies, polymorphism
+Types and pattern matching: Functions as objects, subtyping & generics, variance, OO decomposition, pattern matching, lists
+Lists: Pairs & tuples, implicit parameters, higher order list functions, reduction of lists
+Collections: Vector, Seq, Array, String, Set, Map, Iterable, Range, for-expressions
+Lazy evaluation: Streams, lazy evaluation, infinite sequences 
+</pre>
 
 ## Interesting about scala
 * Akka (actors, futures)
