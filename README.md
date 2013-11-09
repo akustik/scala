@@ -28,7 +28,8 @@ Lazy evaluation: Streams, lazy evaluation, infinite sequences
 * [Spray.io](http://spray.io)
 * [Blueeyes](https://github.com/jdegoes/blueeyes)
 * [sbt](http://www.scala-sbt.org/)
-* [Scalatest](http://www.scalatest.org/user_guide/writing_your_first_test)
+* [ScalaTest](http://www.scalatest.org/user_guide/writing_your_first_test)
+* [ScalaCheck](http://www.scalacheck.org/)
 
 ## Resources
 * [Cheatsheet](CheatSheet.md)
