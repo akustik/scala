@@ -74,6 +74,7 @@ trait BinomialHeap extends Heap {
       val (Node(_,_,c),tsq) = getMin(t, ts)
       meld(c.reverse, tsq)
   }
+  
 }
 
 trait Bogus1BinomialHeap extends BinomialHeap {
