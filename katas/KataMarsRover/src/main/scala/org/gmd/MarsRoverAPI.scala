@@ -45,14 +45,21 @@ trait Terrain {
 
 class Grid(size: Int) extends Terrain {
   
-  private val locations = for {
+  private val coordinates = for {
     x <- 0 until size
     y <- 0 until size
-  } yield Location(Coordinate(x, y), Map(
-    North -> Coordinate(x + 1, y),
-    South -> Coordinate(x - 1, y),
-    East -> Coordinate(x, y + 1),
-    West -> Coordinate(x, y - 1)
+  } yield Coordinate(x,y)
+  
+  private def getCoordinateOrDefault(c: Coordinate, d: Coordinate): Coordinate =
+    if(coordinates.contains(c)) c else d
+  
+  private val locations = for {
+    c <- coordinates
+  } yield Location(c, Map(
+    North -> getCoordinateOrDefault(Coordinate(c.x, c.y + 1), c),
+    South -> getCoordinateOrDefault(Coordinate(c.x, c.y - 1), c),
+    East -> getCoordinateOrDefault(Coordinate(c.x + 1, c.y), c),
+    West -> getCoordinateOrDefault(Coordinate(c.x - 1, c.y), c)
   ))
   
   override def locate(c: Coordinate) = {
@@ -60,7 +67,6 @@ class Grid(size: Int) extends Terrain {
     if(res.size == 1) res(0)
     else throw new IllegalArgumentException("Invalid coordinate " + c)
   }
-  
 }
 
 trait MarsRoverAPI {
@@ -80,7 +86,7 @@ class MarsRoverGrid(size: Int) extends MarsRoverAPI {
       case 'l' :: xc => command(Rover(r.c, r.d.left), xc)
       case 'r' :: xc => command(Rover(r.c, r.d.right), xc)
       case c :: xc => throw new IllegalArgumentException("Invalid coordinate " + c)
-    }
+    }    
   }
 }
 
