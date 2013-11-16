@@ -3,29 +3,29 @@ package org.gmd
 import scala.annotation.tailrec
 
 trait Direction {
-  def name: String
+  def toString: String
   def opposite: Direction
   def left: Direction
   def right: Direction = left.opposite
 }
 
 case object North extends Direction {
-  override def name = "N"
+  override def toString = "N"
   override def opposite = South
   override def left = West
 }
 case object South extends Direction {
-  override def name = "S"
+  override def toString = "S"
   override def opposite = North
   override def left = East
 }
 case object East extends Direction {
-  override def name = "E"
+  override def toString = "E"
   override def opposite = West
   override def left = North
 }
 case object West extends Direction {
-  override def name = "W"
+  override def toString = "W"
   override def opposite = East
   override def left = South
 }

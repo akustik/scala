@@ -49,4 +49,9 @@ class MarsRoverSuite extends FunSuite {
       api.command(Rover(Coordinate(-1, 0), North), Nil)
     }
   }
+  
+  test("Rover#has a human readable string version") {
+    val rover = new Rover(Coordinate(0,0), North)
+    "Rover(Coordinate(0,0),N)" === rover.toString
+  }
 }
