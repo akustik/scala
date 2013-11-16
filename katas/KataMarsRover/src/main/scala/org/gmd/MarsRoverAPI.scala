@@ -64,14 +64,14 @@ class Grid(size: Int) extends Terrain {
 }
 
 trait MarsRoverAPI {
-  def command(r: Rover, args: List[Char]): Rover
+  def command(r: Rover, args: Iterable[Char]): Rover
 }
 
 class MarsRoverGrid(size: Int) extends MarsRoverAPI {
   val terrain = new Grid(size)
   
   @tailrec
-  final def command(r: Rover, args: List[Char]): Rover = {
+  final def command(r: Rover, args: Iterable[Char]): Rover = {
     val location = terrain.locate(r.c)
     args match {
       case Nil => r
