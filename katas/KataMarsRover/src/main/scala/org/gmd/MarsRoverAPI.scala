@@ -31,7 +31,6 @@ case object West extends Direction {
 }
 
 case class Coordinate(x: Int, y: Int)
-case class Edge(d: Direction, to: Location)
 case class Rover(c: Coordinate, d: Direction)
 
 case class Location(c: Coordinate, edges: Map[Direction, Coordinate]) {
