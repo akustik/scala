@@ -3,6 +3,8 @@ package simulations
 import math.random
 import scala.util.Random
 
+case class Room(row: Int, col: Int)
+
 class EpidemySimulator extends Simulator {
 
   def randomBelow(i: Int) = (random * i).toInt
@@ -22,8 +24,6 @@ class EpidemySimulator extends Simulator {
   val persons: List[Person] = {
     (for (i <- 0 until population) yield new Person(i)).toList
   }
-
-  case class Room(row: Int, col: Int)
 
   class Person(val id: Int) {
     var infected = false
@@ -80,7 +80,7 @@ class EpidemySimulator extends Simulator {
 
     def setImmune = {
       if (!dead) {
-        infected = false
+        infected = true
         sick = false
         immune = true
       }
@@ -107,7 +107,7 @@ class EpidemySimulator extends Simulator {
       if (!dead) {
         //Find neighbouring rooms
         val rooms = getNeighbouringRooms
-
+ 
         //Remove not suitable rooms: sick or dead people
         val safeRooms = rooms.filterNot(r => {
           persons.filter(_.room == r).exists(_.seemsInfectuous)

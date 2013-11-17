@@ -11,15 +11,44 @@ class EpidemySuite extends FunSuite {
   test("person moves") {
     val es = new EpidemySimulator
     es.persons.foreach(_.move)
-    
+
     def isInTheGrid(row: Int, col: Int): Boolean = {
-      row >= 0 && col >= 0 && col < es.SimConfig.roomColumns && 
-      row < es.SimConfig.roomRows
+      row >= 0 && col >= 0 && col < es.SimConfig.roomColumns &&
+        row < es.SimConfig.roomRows
     }
-    
+
     assert(es.persons.filterNot(p => isInTheGrid(p.row, p.col)) === Nil)
   }
-  
+
+  test("person does not move when all surrounding rooms are infected") {
+
+    val es = new EpidemySimulator
+    val p = es.persons.find(_.room == Room(2, 2)).head
+
+    val r1 = es.persons.find(p => p.room == Room(1, 2))
+    val r2 = es.persons.find(p => p.room == Room(2, 1))
+    val r3 = es.persons.find(p => p.room == Room(3, 2))
+    val r4 = es.persons.find(p => p.room == Room(2, 3))
+
+    assume(r1.size > 0, "r1 == 0")
+    assume(r2.size > 0, "r2 == 0")
+    assume(r3.size > 0, "r3 == 0")
+    assume(r4.size > 0, "r4 == 0")
+
+    val all = r1 ++ r2 ++ r3 ++ r4
+
+    all.foreach(p => {
+      p.infected = true
+      p.immune = false
+      p.dead = false
+      p.sick = true
+    })
+
+    p.move
+
+    assert(p.room == Room(2, 2), s"Moved to an infected room: ${p.room}")
+  }
+
   test("prevalence rate") {
     val prevalenceRate = 0.01
 
