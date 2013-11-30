@@ -33,6 +33,79 @@ class NodeScalaSuite extends FunSuite {
       case t: TimeoutException => // ok!
     }
   }
+  
+  test("A list of futures should return the first one") {
+    val l = Future.any(List(Future { Thread.sleep(30000); "slow" }, Future { Thread.sleep(500); "fast" }))
+    l onComplete {
+      case msg: Try[String] => assert(msg === Success("fast"))
+    }
+    
+    Await.result(l, 1 second)
+  }
+  
+  test("A list of futures should return every one") {
+    val l = Future.all(List(Future { blocking {Thread.sleep(1000)}; "slow" }, 
+        Future { blocking {Thread.sleep(500)}; "fast" }))
+    l onComplete {
+      case r: Try[List[String]] => assert(r === Success(List("slow", "fast")))
+    }
+    
+    Await.result(l, 2 second)
+  }
+  
+  test("A delay should allow other futures to be executed") {
+    val d = Future.delay(1 seconds)
+    val always = Future.always(517)
+    assert(Await.result(always, 0 nanos) == 517)
+  }
+  
+  test("Now should return the value if available") {
+    val f = Future.always("here we are!")
+    
+    Try(f.now) match {
+      case Success(e) => assert(e === "here we are!")
+      case _ => fail()
+    }
+  }
+  
+  test("Now should trow an exception the value if available") {
+    val f = future {
+      blocking {
+        Thread.sleep(500)
+      }
+      "here we are!"
+    }
+    
+    try {
+      f.now
+    } catch {
+      case t: NoSuchElementException => assert(t.getMessage() === "Element not available")
+      case _: Throwable => fail()
+    }
+  }
+  
+  test("A future should continue with another") {
+    val f = Future.always("here we are!") continueWith (_ => 123)
+    assert(Await.result(f, 1 second) == 123) 
+  }
+  
+  test("A future should continue another") {
+    val f = Future.always("here we are!") continue (_ match {
+      case Success(x) => 123 + x
+      case Failure(x) => x
+    })
+    assert(Await.result(f, 1 second) == "123here we are!") 
+  }
+  
+  test("A future should not continue with another if not completed") {
+    val f = Future.never[String] continueWith (_ => 123)
+    try {
+      Await.result(f, 1 second)
+      fail()
+    } catch {
+      case t: TimeoutException => // ok!
+    }
+  }
 
   test("CancellationTokenSource should allow stopping the computation") {
     val cts = CancellationTokenSource()
