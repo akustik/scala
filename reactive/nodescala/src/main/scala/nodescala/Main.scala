@@ -20,12 +20,15 @@ object Main {
     // TO IMPLEMENT
     // 2. create a future that expects some user input `x`
     //    and continues with a `"You entered... " + x` message
-    val userInterrupted: Future[String] = {
-      Future.userInput("Press any key to stop\n") continue (_ match {
-        case Success(text) => s"You entered... $text"
-        case Failure(e) => s"There was an error: $e"
-      })
-    }
+    val userInterrupted: Future[String] =
+      Future.userInput("Press any key to stop\n")
+
+    /*
+     * FIXME: How to solve the warning of styleCheck
+    val userInterruptedWithMsg = userInterrupted continue (_ match {
+      case Success(msg) => s"You entered...${msg}"
+      case Failure(e) => s"There was an error: ${e}"
+    })*/
 
     // TO IMPLEMENT
     // 3. create a future that completes after 20 seconds

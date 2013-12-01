@@ -11,6 +11,7 @@ import scala.collection.JavaConversions._
 import java.util.concurrent.{ Executor, ThreadPoolExecutor, TimeUnit, LinkedBlockingQueue }
 import com.sun.net.httpserver.{ HttpExchange, HttpHandler, HttpServer }
 import java.net.InetSocketAddress
+import scala.language.postfixOps
 
 /**
  * Contains utilities common to the NodeScala© framework.
