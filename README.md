@@ -22,6 +22,7 @@ Lazy evaluation: Streams, lazy evaluation, infinite sequences
 * Akka (actors, futures)
 * Streams
 * Behaviour testing
+* [Big Data, Hadoop jobs using scalding](http://www.slideshare.net/ToniCebrian/writing-hadoop-jobs-in-scala-using-scalding)
 
 ## Frameworks
 * [Play framework](http://www.playframework.com)
