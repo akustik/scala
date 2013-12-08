@@ -1,19 +1,18 @@
 package suggestions
 
-
-
 import language.postfixOps
 import scala.concurrent._
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.{Try, Success, Failure}
+import scala.util.{ Try, Success, Failure }
 import rx.lang.scala._
 import org.scalatest._
 import gui._
-
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-
+import java.util.concurrent.TimeUnit
+import rx.lang.scala.Notification.{ OnCompleted, OnError, OnNext }
+import java.io.IOException
 
 @RunWith(classOf[JUnitRunner])
 class WikipediaApiTest extends FunSuite {
@@ -46,16 +45,42 @@ class WikipediaApiTest extends FunSuite {
         count += 1
       },
       t => assert(false, s"stream error $t"),
-      () => completed = true
-    )
+      () => completed = true)
     assert(completed && count == 3, "completed: " + completed + ", event count: " + count)
   }
+
+  test("WikipediaApi should make use of recovered") {
+    val seq = Observable(1, 2, 3, 4)
+    val rec = seq.map(x => {
+      if (x == 3) throw new IOException("OOPS")
+      else x
+    }).recovered
+    var completed = false
+    assert(List(Success(1), Success(2), Failure(new IOException("OOPS"))) === rec.toBlockingObservable.toList)
+  }
+
+  /*test("WikipediaApi should correctly use timeout"){
+    var count = 0
+    var completed = false
+    val freq = 200
+    val timer = Observable.interval(Duration(freq, TimeUnit.MILLISECONDS))
+    timer timedOut(1) subscribe (
+      time => {
+        count += 1
+      },
+      t => assert(false, s"stream error $t"),
+      () => completed = true     
+    )
+    Thread.sleep(1200)
+    assert(completed && count == 5, "completed: " + completed + ", event count: " + count)
+  }*/
 
   test("WikipediaApi should correctly use concatRecovered") {
     val requests = Observable(1, 2, 3)
     val remoteComputation = (n: Int) => Observable(0 to n)
     val responses = requests concatRecovered remoteComputation
     val sum = responses.foldLeft(0) { (acc, tn) =>
+      println(tn)
       tn match {
         case Success(n) => acc + n
         case Failure(t) => throw t
