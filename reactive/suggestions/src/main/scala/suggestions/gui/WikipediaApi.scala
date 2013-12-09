@@ -13,11 +13,11 @@ import rx.lang.scala.Observable
 import observablex._
 import search._
 import rx.lang.scala.Notification.{ OnCompleted, OnError, OnNext }
-import org.scalatest.time.Seconds
 import java.util.concurrent.TimeUnit
 import rx.lang.scala.subjects.ReplaySubject
 import rx.lang.scala.Notification
 import java.io.IOException
+import rx.lang.scala.subscriptions.Subscription
 
 trait WikipediaApi {
 
@@ -63,12 +63,21 @@ trait WikipediaApi {
      * E.g. `1, 2, 3, !Exception!` should become `Success(1), Success(2), Success(3), Failure(Exception), !TerminateStream!`
      */
     def recovered: Observable[Try[T]] = {
-      obs.map(x => Success(x)).onErrorReturn(t => Failure(t))
+      //obs.map(x => Success(x)).onErrorReturn(t => Failure(t))
       //TODO: How to implement with materialize? To pass the OnCompleted
       /*obs.materialize.map(_ match {
         case OnError(e) => Failure(e)
         case OnNext(x) => Success(x)
       })*/
+      obs.map(x => Success(x)).onErrorResumeNext(t => {
+        Observable(observer => {
+          observer.onNext(Failure(t))
+          observer.onCompleted
+          Subscription {
+            
+          }
+        })
+      })
     }
 
     /**
@@ -109,7 +118,9 @@ trait WikipediaApi {
      * Observable(Success(1), Succeess(1), Succeess(1), Succeess(2), Succeess(2), Succeess(2), Succeess(3), Succeess(3), Succeess(3))
      */
     def concatRecovered[S](requestMethod: T => Observable[S]): Observable[Try[S]] = {
-      obs.map(requestMethod).concat.recovered
+      obs.map(x => {
+        requestMethod(x).recovered
+      }).concat
     }
 
   }

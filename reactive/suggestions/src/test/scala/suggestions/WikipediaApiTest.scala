@@ -13,6 +13,8 @@ import org.scalatest.junit.JUnitRunner
 import java.util.concurrent.TimeUnit
 import rx.lang.scala.Notification.{ OnCompleted, OnError, OnNext }
 import java.io.IOException
+import rx.lang.scala.{ Observable, Observer, Subscription }
+import rx.lang.scala.subscriptions.BooleanSubscription
 
 @RunWith(classOf[JUnitRunner])
 class WikipediaApiTest extends FunSuite {
@@ -50,16 +52,25 @@ class WikipediaApiTest extends FunSuite {
   }
 
   test("WikipediaApi should make use of recovered") {
+    var res = 0
+    var msg = ""
+    var completed = false
     val seq = Observable(1, 2, 3, 4)
     val rec = seq.map(x => {
       if (x == 3) throw new IOException("OOPS")
       else x
-    }).recovered
-    var completed = false
-    var actual = rec.toBlockingObservable.toList;
-    assert(actual(0) === Success(1))
-    assert(actual(1) === Success(2))
-    assert(actual(2).toString === Failure(new IOException("OOPS")).toString)
+    }).recovered subscribe (
+      value => {
+        value match {
+          case Success(x) => res = res + x
+          case Failure(t) => msg = t.toString()
+        }
+      },
+      t => assert(false, s"stream error $t"),
+      () => completed = true)
+    assert(res === 3)
+    assert(completed == true)
+    assert(msg === new IOException("OOPS").toString)
   }
 
   /*test("WikipediaApi should correctly use timeout"){
@@ -76,6 +87,33 @@ class WikipediaApiTest extends FunSuite {
     )
     Thread.sleep(1200)
     assert(completed && count == 5, "completed: " + completed + ", event count: " + count)
+  }*/
+
+  /*
+  test("WikipediaApi should correctly use concatRecovered mine") {
+    val obs = Observable((observer: Observer[String]) => {
+      observer.onNext("1")
+      observer.onNext("2")
+      observer.onNext("3")
+      BooleanSubscription {
+
+      }
+    }) concatRecovered (s => {
+      if (s == "1") {
+        Observable("1")
+      } else {
+        Observable((obs2: Observer[String]) => {
+          obs2.onError(new IOException)
+          BooleanSubscription {
+
+          }
+        })
+      }
+    })
+
+    val res = obs.toBlockingObservable.toList.toSet
+    assert(res.toString === Set(Success("1"), Failure(new IOException)).toString)
+    
   }*/
 
   test("WikipediaApi should correctly use concatRecovered") {

@@ -25,7 +25,7 @@ object ObservableEx {
       case Failure(e) => { subject onError (e) }
       case Success(c) => {
         subject onNext (c)
-        subject onCompleted
+        subject onCompleted()
       }
     }
     subject

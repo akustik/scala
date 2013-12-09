@@ -35,7 +35,8 @@ object WikipediaSuggest extends SimpleSwingApplication with ConcreteSwingApi wit
     minimumSize = new Dimension(900, 600)
 
     val button = new Button("Get") {
-      icon = new javax.swing.ImageIcon(javax.imageio.ImageIO.read(this.getClass.getResourceAsStream("/suggestions/wiki-icon.png")))
+      icon = new javax.swing.ImageIcon(
+          javax.imageio.ImageIO.read(this.getClass.getResourceAsStream("/suggestions/wiki-icon.png")))
     }
     val searchTermField = new TextField
     val suggestionList = new ListView(ListBuffer[String]())
@@ -81,38 +82,58 @@ object WikipediaSuggest extends SimpleSwingApplication with ConcreteSwingApi wit
      */
 
     // TO IMPLEMENT
-    val searchTerms: Observable[String] = ???
+    val searchTerms: Observable[String] = searchTermField.textValues
 
     // TO IMPLEMENT
-    val suggestions: Observable[Try[List[String]]] = ???
-
-
-    // TO IMPLEMENT
-    val suggestionSubscription: Subscription =  suggestions.observeOn(eventScheduler) subscribe {
-      x => ???
+    val suggestions: Observable[Try[List[String]]] = {
+      searchTerms.concatRecovered(term => {
+        wikiSuggestResponseStream(term).timedOut(5)
+      })
     }
 
     // TO IMPLEMENT
-    val selections: Observable[String] = ???
+    val suggestionSubscription: Subscription = suggestions.observeOn(eventScheduler) subscribe {
+      x =>
+        x match {
+          case Success(xs) => suggestionList.listData = xs
+          case Failure(t) => status.text = "suggestion failed => " + t.toString
+        }
+    }
 
     // TO IMPLEMENT
-    val pages: Observable[Try[String]] = ???
+    val selections: Observable[String] = {
+      button.clicks.dropWhile(src => {
+        suggestionList.selection.indices.isEmpty
+      }).map(src => {
+        suggestionList.selection.items.head
+      })
+    }
+
+    // TO IMPLEMENT
+    val pages: Observable[Try[String]] = {
+      selections.concatRecovered(term => {
+        status.text = "Searching " + term
+        wikiPageResponseStream(term).timedOut(5)
+      })
+    }
 
     // TO IMPLEMENT
     val pageSubscription: Subscription = pages.observeOn(eventScheduler) subscribe {
-      x => ???
+      x =>
+        x match {
+          case Success(p) => editorpane.text = p
+          case Failure(t) => status.text = "page failed => " + t.toString()
+        }
     }
 
   }
 
 }
 
-
 trait ConcreteWikipediaApi extends WikipediaApi {
   def wikipediaSuggestion(term: String) = Search.wikipediaSuggestion(term)
   def wikipediaPage(term: String) = Search.wikipediaPage(term)
 }
-
 
 trait ConcreteSwingApi extends SwingApi {
   type ValueChanged = scala.swing.event.ValueChanged
