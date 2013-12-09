@@ -56,7 +56,10 @@ class WikipediaApiTest extends FunSuite {
       else x
     }).recovered
     var completed = false
-    assert(List(Success(1), Success(2), Failure(new IOException("OOPS"))) === rec.toBlockingObservable.toList)
+    var actual = rec.toBlockingObservable.toList;
+    assert(actual(0) === Success(1))
+    assert(actual(1) === Success(2))
+    assert(actual(2).toString === Failure(new IOException("OOPS")).toString)
   }
 
   /*test("WikipediaApi should correctly use timeout"){
@@ -80,7 +83,6 @@ class WikipediaApiTest extends FunSuite {
     val remoteComputation = (n: Int) => Observable(0 to n)
     val responses = requests concatRecovered remoteComputation
     val sum = responses.foldLeft(0) { (acc, tn) =>
-      println(tn)
       tn match {
         case Success(n) => acc + n
         case Failure(t) => throw t
