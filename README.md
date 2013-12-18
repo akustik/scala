@@ -5,6 +5,8 @@ scala
 * Fizzbuzz
 * KataPokerHands
 * KataPokerHandsEm
+* [s99](http://aperiodic.net/phil/scala/s-99) and [tests](https://github.com/jsuereth/scala-99-puzzles/blob/master/src/test/scala/suereth/TestNinetyNine.scala)
+* [Puzzles](http://scalapuzzlers.com/)
 
 ## Coursera 
 * [Functional Programming Principles in Scala](https://class.coursera.org/progfun-003/class)
