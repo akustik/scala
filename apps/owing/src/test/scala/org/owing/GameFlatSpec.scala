@@ -11,7 +11,7 @@ import org.owing.Cmd._
 class GameFlatSpec extends FlatSpec with ShouldMatchers {
   
   "A game" should "add starships" in {
-    val game = new Game()
+    val game = new Game(1000, 1000)
     game.addStarShip("rebel", Point(200, 200));
     game.addStarShip("empire", Point(800, 200));
     
@@ -19,7 +19,7 @@ class GameFlatSpec extends FlatSpec with ShouldMatchers {
   }
   
   it should "move starships" in {
-    val game = new Game()
+    val game = new Game(1000, 1000)
     game.addStarShip("rebel", Point(200, 200));
     game.move("rebel", Forward(5));    
     val movedStarShip = game.getStarShip("rebel")

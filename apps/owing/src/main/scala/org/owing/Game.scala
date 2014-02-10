@@ -2,25 +2,26 @@ package org.owing
 
 import org.owing.physics._
 import Math._
+
 import scala.collection.mutable.Map
 
 object Cmd {
   type MovementUnits = Int
-  
+
   trait Movement {
     def units: MovementUnits
   }
-  
-  case class Forward(units: MovementUnits) extends Movement  
+
+  case class Forward(units: MovementUnits) extends Movement
 }
 
-class Game {
+trait BoardElement {
+  def id(): String
+  def shape(): Shape
+}
+
+class Game(val w: Int, val h: Int) {
   import org.owing.Cmd._
-  
-  trait BoardElement {
-    def id(): String
-    def shape(): Shape
-  }
 
   case class StarShip(val id: String, val shape: Shape) extends BoardElement {
     val minForward = 1
@@ -45,10 +46,14 @@ class Game {
       }
     }
   }
-  
+
   def getStarShip(id: String) = ships(id)
 
   def elements(): Seq[BoardElement] = {
     ships.values.toSeq
   }
 }
+
+
+
+

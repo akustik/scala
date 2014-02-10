@@ -3,7 +3,7 @@ package org.owing.physics
 import org.owing.physics.Types._
 import Math._
 
-class Rect(val topLeft: Point, val angle: AngleInRadians, w: Int, h: Int) extends Shape {
+class Rect(val topLeft: Point, val angle: AngleInRadians, val w: Int, val h: Int) extends Shape {
   private val dxW = cos(angle) * w
   private val dyW = sin(angle) * w
   private val dxH = cos(angle + toRadians(90)) * h
