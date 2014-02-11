@@ -1,3 +1,3 @@
 #!/bin/bash
 
-sbt ~testQuick
+sbt "set offline := true" ~testQuick

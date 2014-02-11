@@ -13,6 +13,8 @@ object Cmd {
   }
 
   case class Forward(units: MovementUnits) extends Movement
+  case class RotateRight(units: MovementUnits) extends Movement
+  case class RotateLeft(units: MovementUnits) extends Movement
 }
 
 trait BoardElement {
@@ -35,16 +37,20 @@ class Game(val w: Int, val h: Int) {
   }
 
   def move(id: String, m: Movement) = {
-    m match {
-      case f: Cmd.Forward => {
-        ships.get(id).foreach(s => {
-          assert(m.units >= s.minForward && m.units <= s.maxForward)
-          val shipWithNewLocation = StarShip(s.id, s.shape.move(m.units * 50))
-          println(shipWithNewLocation)
-          ships += (s.id -> shipWithNewLocation)
-        })
+    ships.get(id).foreach(s => {
+      m match {
+        case f: Cmd.Forward => {
+          assert(f.units >= s.minForward && f.units <= s.maxForward)
+          ships += (s.id -> StarShip(s.id, s.shape.move(f.units * 50)))
+        }
+        case r: Cmd.RotateRight => {
+          ships += (s.id -> StarShip(s.id, s.shape.rotate(toRadians(r.units), true)))
+        }
+        case l: Cmd.RotateLeft => {
+          ships += (s.id -> StarShip(s.id, s.shape.rotate(toRadians(l.units), false)))
+        }
       }
-    }
+    })
   }
 
   def getStarShip(id: String) = ships(id)
