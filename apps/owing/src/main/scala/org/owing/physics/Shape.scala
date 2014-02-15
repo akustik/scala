@@ -8,5 +8,6 @@ trait Shape {
   def center(): Point
   def angle(): AngleInRadians
   def move(d: Int): Shape
-  def rotate(r: AngleInRadians, cw: Boolean = true): Shape
+  def rotate(a: AngleInRadians, cw: Boolean = true): Shape
+  def circle(radius: Int, a: AngleInRadians, cw: Boolean = true): Shape
 }

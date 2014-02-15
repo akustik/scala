@@ -15,6 +15,7 @@ class RectFlatSpec extends FlatSpec with ShouldMatchers {
   val r3 = Rect(Point(0, 100), toRadians(45), 200, 100)
   val r4 = Rect(Point(200, 200), 0, 50, 50)
   val r5 = Rect(Point(0, 100), 0, 200, 100)
+  val r6 = Rect(Point(50, 50), toRadians(90), 10, 10)
 
   "A rect" should "have a top right point" in {
     r1.topRight should be(Point(20, 10))
@@ -77,4 +78,21 @@ class RectFlatSpec extends FlatSpec with ShouldMatchers {
     r3r.center should be(r3.center)
   }
 
+  it should "move in circle counter clockwise 90 degrees from initial position" in {
+    val r1c = r1.circle(20, toRadians(90), false)
+    r1c.angle should be(toRadians(-90))
+    r1c.center should be(Point(-15, 40))
+  }
+
+  it should "move in circle clockwise 90 degrees from initial position" in {
+    val r1c = r1.circle(20, toRadians(90), true)
+    r1c.angle should be(toRadians(90))
+    r1c.center should be(Point(15, 20))
+  }
+
+  it should "move in circle clockwise 90 degrees when already facing right" in {
+    val r6c = r6.circle(10, toRadians(90), true)
+    r6c.angle should be(toRadians(180))
+    r6c.center should be(Point(55, 45))
+  }
 }

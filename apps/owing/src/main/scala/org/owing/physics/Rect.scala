@@ -33,6 +33,16 @@ class Rect(val topLeft: Point, val angle: AngleInRadians, val w: Int, val h: Int
     val newTopLeft = rotatedTopLeft + center
     Rect(newTopLeft, rotatedTopRightFromOrigin.angle - toRadians(90), w, h)
   }
+  def circle(radius: Int, a: AngleInRadians, cw: Boolean = true): Shape = {
+    val rotationPointAngle = 
+      if(cw) toRadians(360) - angle
+      else toRadians(180) - angle
+    val rotationPointDistance = Distance(round(radius*cos(rotationPointAngle)).toInt, round(radius*sin(rotationPointAngle)).toInt)
+    val rotationPoint = topLeft + rotationPointDistance
+    val topLeftWithRotationPointOnOrigin = topLeft - rotationPoint
+    val newTopLeft = topLeftWithRotationPointOnOrigin.rotate(a, cw) + rotationPoint
+    Rect(newTopLeft, if(cw) angle + a else angle - a, w, h) 
+  }
   override def toString: String = "Rect: " + topLeft + ", " +
     angle + ", " + w + ", " + h
 }

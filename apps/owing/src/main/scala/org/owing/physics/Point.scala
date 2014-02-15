@@ -7,6 +7,7 @@ case class Point(x: Int, y: Int) {
   def +(o: Point) = Point(x + o.x, y + o.y)
   def +(d: Distance) = Point(x + d.x, y + d.y)
   def -(o: Point) = Point(x - o.x, y - o.y)
+  def -(d: Distance) = Point(x - d.x, y - d.y)
   def /(a: Int) = Point(x / a, y / a)
   def rotate(r: AngleInRadians, cw: Boolean = true) = {
     if (cw) Point(x * cos(r) + y * sin(r), -x * sin(r) + y * cos(r))
