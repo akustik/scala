@@ -3,7 +3,7 @@ package org.owing.physics
 import org.owing.physics.Types._
 import Math._
 
-class Rect(val topLeft: Point, val angle: AngleInRadians, val w: Int, val h: Int) extends Shape {
+case class Rect(val topLeft: Point, val angle: AngleInRadians, val w: Int, val h: Int) extends Shape {
   private val dxW = cos(angle) * w
   private val dyW = sin(angle) * w
   private val dxH = cos(angle + toRadians(90)) * h
@@ -21,7 +21,12 @@ class Rect(val topLeft: Point, val angle: AngleInRadians, val w: Int, val h: Int
       translatedPoint.x >= 0 && translatedPoint.y >= 0 && translatedPoint.x <= w && translatedPoint.y <= h
     }
   }
-  def intersects(s: Shape) = false
+  def intersects(s: Shape) = {
+    s match {
+      case r: Rect => r.contains(topLeft) || r.contains(topRight) || r.contains(bottomLeft) || r.contains(bottomRight)
+      case _ => throw new java.lang.IllegalArgumentException("Unknown shape")
+    }
+  }
   def move(d: Int): Shape = {
     val distanceWithAngle = Distance(round(d * sin(angle)).toInt, round(d * cos(angle)).toInt)
     Rect(topLeft + distanceWithAngle, angle, w, h)
@@ -43,10 +48,4 @@ class Rect(val topLeft: Point, val angle: AngleInRadians, val w: Int, val h: Int
     val newTopLeft = topLeftWithRotationPointOnOrigin.rotate(a, cw) + rotationPoint
     Rect(newTopLeft, if(cw) angle + a else angle - a, w, h) 
   }
-  override def toString: String = "Rect: " + topLeft + ", " +
-    angle + ", " + w + ", " + h
-}
-
-object Rect {
-  def apply(topLeft: Point, angle: AngleInRadians, w: Int, h: Int) = new Rect(topLeft, angle, w, h)
 }

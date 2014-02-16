@@ -15,6 +15,8 @@ class GraphicalUI(games: List[Game], d: Dimension) extends SimpleSwingApplicatio
     game.elements.foreach(e => {
       e.shape match {
         case r: Rect => {
+          if(e.status.withCollision) g.setColor(new Color(255, 0, 0))
+          else g.setColor(new Color(100, 100, 100))
           g.drawString(e.id + "(" + game.idx + ")" , x(r.topLeft.x), y(r.topLeft.y))
           g.draw(new Line2D.Double(x(r.topLeft.x), y(r.topLeft.y), x(r.topRight.x), y(r.topRight.y)))
           g.draw(new Line2D.Double(x(r.center.x), y(r.center.y), x(r.topRight.x), y(r.topRight.y)))
@@ -32,7 +34,6 @@ class GraphicalUI(games: List[Game], d: Dimension) extends SimpleSwingApplicatio
       preferredSize = d
       override def paintComponent(g: Graphics2D) = {
         super.paintComponent(g)
-        g.setColor(new Color(100, 100, 100))
         games.foreach(paintGame(g, _))
       }
     }
@@ -43,7 +44,9 @@ object Owing {
   def main(args: Array[String]) {
     println("Starting o-wing...")
     val initial = new Game(0, 1000, 1000)
-    val g = initial.addStarShip("R1", Point(100, 100)).
+    val g = initial.
+      addStarShip("R1", Point(100, 100)).
+      addStarShip("E1", Point(300, 600), 180).
       move("R1", Forward(3)).
       move("R1", RotateRight(2)).
       move("R1", Forward(5)).
@@ -55,6 +58,7 @@ object Owing {
       move("R1", Forward(1)).
       move("R1", TurnRight(5)).
       move("R1", RotateRight(5)).
+      move("R1", Forward(3)).
       status
     val ui = new GraphicalUI(g, new Dimension(1000, 1000))
     ui.startup(args)

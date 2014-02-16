@@ -95,4 +95,10 @@ class RectFlatSpec extends FlatSpec with ShouldMatchers {
     r6c.angle should be(toRadians(180))
     r6c.center should be(Point(55, 45))
   }
+
+  it should "show when there is an intersection with another rect" in {
+    r1.intersects(r2) should be(true)
+    r1.intersects(r6) should be(false)
+  }
+
 }
