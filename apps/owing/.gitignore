@@ -21,4 +21,5 @@ project/plugins/project/
 *.swp
 
 #Sublime specific
-owing.sublime-project
+*.sublime-project
+*.sublime-workspace
