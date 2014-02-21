@@ -15,24 +15,49 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 trait MessageRepository {
   def store(topic: String, msg: String)
-  def dumpByTopic(topic: String)
-  def dumpByTopicAndMessage(topic: String, msg: String)
+  def dumpByTopic(topic: String): List[(String, String)]
+  def dumpByTopicAndMessage(topic: String, msg: String): List[(String, String)]
   def close
 }
 
-class DummyMessageRepository extends MessageRepository {
+trait MessageSource {
+  def topic: String
+  def subscribe(fn: (Iterator[MessageAndMetadata[Array[Byte],Array[Byte]]]) => Unit)
+  def close: Unit
+}
+
+class InMemoryMessageRepository() extends MessageRepository {
+  var values = List[(String, String)]()
+
   def store(topic: String, msg: String) = {
-    println(s"store(${topic}, ${msg})")
+    values = (topic, msg) :: values
   }
-  def dumpByTopic(topic: String) = {
-    println(s"dumpByTopic(${topic})")
+  def dumpByTopic(topic: String): List[(String, String)] = values.filter(_._1 == topic)
+  def dumpByTopicAndMessage(topic: String, msg: String): List[(String, String)] = values.filter(e => e._1 == topic && e._2 == msg)
+  def close = {}
+}
+
+class FixedMessageSource(val topic: String, values: List[MessageAndMetadata[Array[Byte],Array[Byte]]]) extends MessageSource {
+
+  private class OneTimeListIterator(var values: List[MessageAndMetadata[Array[Byte],Array[Byte]]])  
+    extends Iterator[MessageAndMetadata[Array[Byte],Array[Byte]]] with java.util.Iterator[MessageAndMetadata[Array[Byte],Array[Byte]]]{
+      def hasNext = values != Nil
+      def next = {
+        val res = values.head
+        values = values.tail
+        res
+      }
+      def remove = {}
   }
-  def dumpByTopicAndMessage(topic: String, msg: String) = {
-    println(s"dumpByTopicAndMessage(${topic}, ${msg})")
+
+  private class OneTimeListIterable(values: List[MessageAndMetadata[Array[Byte],Array[Byte]]]) 
+    extends Iterable[MessageAndMetadata[Array[Byte],Array[Byte]]] with java.lang.Iterable[MessageAndMetadata[Array[Byte],Array[Byte]]] {
+
+    def iterator() = new OneTimeListIterator(values)
   }
-  def close = {
-    println("close")
-  }
+
+  def subscribe(fn: (Iterator[MessageAndMetadata[Array[Byte],Array[Byte]]]) => Unit) = fn(values.iterator)
+  def close = {}
 }
 
 class MongoMessageRepository extends MessageRepository {
@@ -56,7 +81,7 @@ class MongoMessageRepository extends MessageRepository {
     }
   }
 
-  def dumpByTopicAndMessage(topic: String, msg: String) = {
+  def dumpByTopicAndMessage(topic: String, msg: String): List[(String, String)] = {
     val regexp = ""
     val query = BSONDocument(
       "topic" -> topic,
@@ -72,9 +97,11 @@ class MongoMessageRepository extends MessageRepository {
       enumerate().apply(Iteratee.foreach { doc =>
         println(s"dumpByTopicAndMessage(${topic}, ${msg}): " + BSONDocument.pretty(doc))
       })
+
+    Nil
   }
 
-  def dumpByTopic(topic: String)= {
+  def dumpByTopic(topic: String): List[(String, String)] = {
     val query = BSONDocument(
       "topic" -> topic)
     
@@ -88,6 +115,8 @@ class MongoMessageRepository extends MessageRepository {
       enumerate().apply(Iteratee.foreach { doc =>
         println(s"dumpByTopic(${topic}): " + BSONDocument.pretty(doc))
       })
+
+    Nil
   }
 
   def close = {
@@ -97,23 +126,17 @@ class MongoMessageRepository extends MessageRepository {
   }
 }
 
-trait MessageSource {
-  def topic: String
-  def subscribe(fn: (Iterable[MessageAndMetadata[Array[Byte],Array[Byte]]]) => Unit)
-  def close: Unit
-}
-
 class KafkaMessageSource(val hostAndPort: String, val topic: String) extends MessageSource {
   val config = new ConsumerConfig(buildConfigProperties(hostAndPort))
   val connector = Consumer.create(config)
 
-  def subscribe(fn: (Iterable[MessageAndMetadata[Array[Byte],Array[Byte]]]) => Unit) = {
+  def subscribe(fn: (Iterator[MessageAndMetadata[Array[Byte],Array[Byte]]]) => Unit) = {
     val msgStreams: Option[List[KafkaStream[Array[Byte],Array[Byte]]]] = connector.createMessageStreams(Map(topic -> 1)).get(topic)
     msgStreams.map(streamList => {
       println(s"Found ${streamList.size} streams")
       streamList.foreach(stream => {
         println(s"Fetching message with client id " + stream.clientId)
-        fn(stream)
+        fn(stream.iterator)
       })
     })
   }
@@ -140,31 +163,37 @@ class SimpleConsumer(implicit val repo: MessageRepository, implicit val src: Mes
   val filterPattern = "get:(.*)".r
 
   @tailrec
-  final def readMessage(messages: Iterable[MessageAndMetadata[Array[Byte],Array[Byte]]]): Unit = {
-    val e = messages.head
-    val msg = new String(e.message)
-    msg match {
-      case "dump" => {
-        repo.dumpByTopic(src.topic)
-        readMessage(messages)
-      }
-      case filterPattern(m) => {
-        repo.dumpByTopicAndMessage(src.topic, m)
-        readMessage(messages)
-      }
-      case "shutdown" => {
-        println("Shutdown signal received!")
-      }
-      case _ => {
-        println(s"[${e.partition}/${e.offset}] => ${e.topic} -> ${msg}")
-        repo.store(src.topic, msg)
-        readMessage(messages)
+  final def readMessage(messages: Iterator[MessageAndMetadata[Array[Byte],Array[Byte]]]): Unit = {
+    if(messages.hasNext) {
+      val e = messages.next
+      val msg = new String(e.message)
+      msg match {
+        case "dump" => {
+          repo.dumpByTopic(src.topic)
+          readMessage(messages)
+        }
+        case filterPattern(m) => {
+          repo.dumpByTopicAndMessage(src.topic, m)
+          readMessage(messages)
+        }
+        case "shutdown" => {
+          println("Shutdown signal received!")
+        }
+        case _ => {
+          println(s"[${e.partition}/${e.offset}] => ${e.topic} -> ${msg}")
+          repo.store(src.topic, msg)
+          readMessage(messages)
+        }
       }
     }
   }
 
+  final def read(messages: Iterable[MessageAndMetadata[Array[Byte],Array[Byte]]]): Unit = {
+    readMessage(messages.iterator)
+  }
+
   def listenTo() = {
-    src.subscribe(readMessage(_));
+    src.subscribe(readMessage);
   }
 
   def shutdown() = {
@@ -182,7 +211,6 @@ object SimpleConsumer {
     val zookeeper = "localhost:2181"
     val topic = "test"
 
-    //implicit val repo: MessageRepository = new DummyMessageRepository
     implicit val src: MessageSource = new KafkaMessageSource(zookeeper, topic)
     implicit val repo: MessageRepository = new MongoMessageRepository
     val consumer = new SimpleConsumer
