@@ -19,6 +19,21 @@ trait MessageRepository {
   def close
 }
 
+class DummyMessageRepository extends MessageRepository {
+  def store(topic: String, msg: String) = {
+    println(s"store(${topic}, ${msg})")
+  }
+  def dumpByTopic(topic: String) = {
+    println(s"dumpByTopic(${topic})")
+  }
+  def dumpByTopicAndMessage(topic: String, msg: String) = {
+    println(s"dumpByTopicAndMessage(${topic}, ${msg})")
+  }
+  def close = {
+    println("close")
+  }
+}
+
 class MongoMessageRepository extends MessageRepository {
   val driver = new MongoDriver
   val connection = driver.connection(List("localhost"))
@@ -75,14 +90,12 @@ class MongoMessageRepository extends MessageRepository {
   }
 
   def close = {
-    connection.close
+    //connection.close
     driver.close
   }
 }
 
-class SimpleConsumer(val hostAndPort: String, val topic: String) {
-
-  val repo: MessageRepository = new MongoMessageRepository
+class SimpleConsumer(val hostAndPort: String, val topic: String)(implicit val repo: MessageRepository) {
   val config = new ConsumerConfig(buildConfigProperties(hostAndPort))
   val connector = Consumer.create(config)
   val filterPattern = "get:(.*)".r
@@ -148,6 +161,8 @@ object SimpleConsumer {
     val zookeeper = "localhost:2181"
     val topic = "test"
 
+    //implicit val repo: MessageRepository = new DummyMessageRepository
+    implicit val repo: MessageRepository = new MongoMessageRepository
     val consumer = new SimpleConsumer(zookeeper, topic)
     consumer.listenTo()
     consumer.shutdown
