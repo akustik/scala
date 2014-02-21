@@ -12,4 +12,4 @@ libraryDependencies += "junit" % "junit" % "4.10" % "test"
 
 libraryDependencies += "org.specs2" % "specs2_2.10" % "2.2"
             
-libraryDependencies += "org.apache.kafka" % "kafka_2.9.2" % "0.8.0" exclude("com.sun.jdmk", "jmxtools") exclude("com.sun.jmx", "jmxri")
+libraryDependencies += "org.apache.kafka" % "kafka_2.10" % "0.8.0" exclude("com.sun.jdmk", "jmxtools") exclude("com.sun.jmx", "jmxri")
