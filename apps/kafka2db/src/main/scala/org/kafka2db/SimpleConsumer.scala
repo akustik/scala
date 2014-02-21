@@ -5,6 +5,7 @@ import scala.util.{Failure, Success}
 
 import java.util.Properties
 import kafka.consumer._
+import kafka.message._
 
 import reactivemongo.api._
 import reactivemongo.bson._
@@ -90,38 +91,31 @@ class MongoMessageRepository extends MessageRepository {
   }
 
   def close = {
+    println("Closing repository...")
     //connection.close
     driver.close
   }
 }
 
-class SimpleConsumer(val hostAndPort: String, val topic: String)(implicit val repo: MessageRepository) {
+trait MessageSource {
+  def topic: String
+  def subscribe(fn: (Iterable[MessageAndMetadata[Array[Byte],Array[Byte]]]) => Unit)
+  def close: Unit
+}
+
+class KafkaMessageSource(val hostAndPort: String, val topic: String) extends MessageSource {
   val config = new ConsumerConfig(buildConfigProperties(hostAndPort))
   val connector = Consumer.create(config)
-  val filterPattern = "get:(.*)".r
 
-  @tailrec
-  final def readMessage(stream: KafkaStream[Array[Byte],Array[Byte]]): Unit = {
-    val e = stream.head
-    val msg = new String(e.message)
-    msg match {
-      case "dump" => {
-        repo.dumpByTopic(topic)
-        readMessage(stream)
-      }
-      case filterPattern(m) => {
-        repo.dumpByTopicAndMessage(topic, m)
-        readMessage(stream)
-      }
-      case "shutdown" => {
-        println("Shutdown signal received!")
-      }
-      case _ => {
-        println(s"[${e.partition}/${e.offset}] => ${e.topic} -> ${msg}")
-        repo.store(topic, msg)
-        readMessage(stream)
-      }
-    }
+  def subscribe(fn: (Iterable[MessageAndMetadata[Array[Byte],Array[Byte]]]) => Unit) = {
+    val msgStreams: Option[List[KafkaStream[Array[Byte],Array[Byte]]]] = connector.createMessageStreams(Map(topic -> 1)).get(topic)
+    msgStreams.map(streamList => {
+      println(s"Found ${streamList.size} streams")
+      streamList.foreach(stream => {
+        println(s"Fetching message with client id " + stream.clientId)
+        fn(stream)
+      })
+    })
   }
 
   def buildConfigProperties(hostAndPort: String): Properties = {
@@ -135,20 +129,47 @@ class SimpleConsumer(val hostAndPort: String, val topic: String)(implicit val re
     props
   }
 
+  def close = {
+    println("Closing source...")
+    connector.shutdown
+  }
+}
+
+class SimpleConsumer(implicit val repo: MessageRepository, implicit val src: MessageSource) {
+  
+  val filterPattern = "get:(.*)".r
+
+  @tailrec
+  final def readMessage(messages: Iterable[MessageAndMetadata[Array[Byte],Array[Byte]]]): Unit = {
+    val e = messages.head
+    val msg = new String(e.message)
+    msg match {
+      case "dump" => {
+        repo.dumpByTopic(src.topic)
+        readMessage(messages)
+      }
+      case filterPattern(m) => {
+        repo.dumpByTopicAndMessage(src.topic, m)
+        readMessage(messages)
+      }
+      case "shutdown" => {
+        println("Shutdown signal received!")
+      }
+      case _ => {
+        println(s"[${e.partition}/${e.offset}] => ${e.topic} -> ${msg}")
+        repo.store(src.topic, msg)
+        readMessage(messages)
+      }
+    }
+  }
+
   def listenTo() = {
-    val msgStreams: Option[List[KafkaStream[Array[Byte],Array[Byte]]]] = connector.createMessageStreams(Map(topic -> 1)).get(topic)
-    msgStreams.map(streamList => {
-      println(s"Found ${streamList.size} streams")
-      streamList.foreach(stream => {
-        println(s"Fetching message with client id " + stream.clientId)
-        readMessage(stream)
-      })
-    })
+    src.subscribe(readMessage(_));
   }
 
   def shutdown() = {
     println("Shutting down...")
-    connector.shutdown
+    src.close
     repo.close
   }
 }
@@ -162,8 +183,9 @@ object SimpleConsumer {
     val topic = "test"
 
     //implicit val repo: MessageRepository = new DummyMessageRepository
+    implicit val src: MessageSource = new KafkaMessageSource(zookeeper, topic)
     implicit val repo: MessageRepository = new MongoMessageRepository
-    val consumer = new SimpleConsumer(zookeeper, topic)
+    val consumer = new SimpleConsumer
     consumer.listenTo()
     consumer.shutdown
 
