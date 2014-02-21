@@ -15,6 +15,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 trait MessageRepository {
   def store(topic: String, msg: String)
   def dumpByTopic(topic: String)
+  def dumpByTopicAndMessage(topic: String, msg: String)
   def close
 }
 
@@ -34,13 +35,16 @@ class MongoMessageRepository extends MessageRepository {
     future.onComplete {
       case Failure(e) => println(e)
       case Success(lastError) => {
-        println("successfully inserted document with lastError = " + lastError)
+        println("inserted, last error = " + lastError)
       }
     }
   }
 
-  def dumpByTopic(topic: String)= {
-    val query = BSONDocument("topic" -> topic)
+  def dumpByTopicAndMessage(topic: String, msg: String) = {
+    val regexp = ""
+    val query = BSONDocument(
+      "topic" -> topic,
+      "msg" -> msg)
     
     val filter = BSONDocument(
       "msg" -> 1,
@@ -50,7 +54,23 @@ class MongoMessageRepository extends MessageRepository {
       find(query, filter).
       cursor[BSONDocument].
       enumerate().apply(Iteratee.foreach { doc =>
-        println("found document: " + BSONDocument.pretty(doc))
+        println(s"dumpByTopicAndMessage(${topic}, ${msg}): " + BSONDocument.pretty(doc))
+      })
+  }
+
+  def dumpByTopic(topic: String)= {
+    val query = BSONDocument(
+      "topic" -> topic)
+    
+    val filter = BSONDocument(
+      "msg" -> 1,
+      "_id" -> 1)
+
+    collection.
+      find(query, filter).
+      cursor[BSONDocument].
+      enumerate().apply(Iteratee.foreach { doc =>
+        println(s"dumpByTopic(${topic}): " + BSONDocument.pretty(doc))
       })
   }
 
@@ -65,6 +85,7 @@ class SimpleConsumer(val hostAndPort: String, val topic: String) {
   val repo: MessageRepository = new MongoMessageRepository
   val config = new ConsumerConfig(buildConfigProperties(hostAndPort))
   val connector = Consumer.create(config)
+  val filterPattern = "get:(.*)".r
 
   @tailrec
   final def readMessage(stream: KafkaStream[Array[Byte],Array[Byte]]): Unit = {
@@ -73,6 +94,10 @@ class SimpleConsumer(val hostAndPort: String, val topic: String) {
     msg match {
       case "dump" => {
         repo.dumpByTopic(topic)
+        readMessage(stream)
+      }
+      case filterPattern(m) => {
+        repo.dumpByTopicAndMessage(topic, m)
         readMessage(stream)
       }
       case "shutdown" => {
@@ -126,6 +151,9 @@ object SimpleConsumer {
     val consumer = new SimpleConsumer(zookeeper, topic)
     consumer.listenTo()
     consumer.shutdown
+
+    println("Waiting for db to stop...")
+    Thread.sleep(5000)
 
     println("End");
   }
