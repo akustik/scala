@@ -23,3 +23,6 @@ project/plugins/project/
 #Sublime specific
 *.sublime-project
 *.sublime-workspace
+
+#MongoDB database
+data/
