@@ -10,7 +10,10 @@ organization := Common.organization
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.1" % "test"
 
-lazy val root = (project in file(".")).aggregate(util, core).dependsOn(core)
+lazy val root = (project in file(".")).aggregate(util, core).dependsOn(core).settings(
+  aggregate in gitStatus := false,
+  aggregate in git := false
+)
 
 lazy val util = project
 
