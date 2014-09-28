@@ -23,3 +23,13 @@ lazy val core = project.dependsOn(util)
   testJs.value
   (test in Test).value
 }
+
+(packageBin in Compile) := {
+  val log = streams.value.log
+  val status = gitStatus.value
+  if(status.contains("modified")) {
+    log.error(status)
+    throw new IllegalArgumentException("Dirty repo")
+  }
+  (packageBin in Compile).value
+}

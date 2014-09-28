@@ -58,6 +58,7 @@ object AppBuild extends Build {
     },
     gitStatus := shellExecutor.execute("git status"),
     git := {
+      //TODO: Improve the parser to allow double quote with the commit command
       shellExecutor.execute("git" + " " + gitNaiveParser.parsed.mkString(" "))
     }
   )
