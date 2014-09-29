@@ -6,6 +6,10 @@ artifactName := { (sv: ScalaVersion, module: ModuleID, artifact: Artifact) =>
 
 scalaVersion := "2.11.2"
 
+apiVersion in ThisBuild := "0.9.5"
+
+appVersion := "0.8.0"
+
 organization := Common.organization
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.1" % "test"

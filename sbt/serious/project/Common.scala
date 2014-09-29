@@ -31,6 +31,10 @@ class ShellExecutor {
   }
 }
 
+object Common {
+  def organization = "org.gmd"
+}
+
 object AppBuild extends Build {
 
   val shellExecutor = new ShellExecutor
@@ -47,9 +51,9 @@ object AppBuild extends Build {
 
   val git = inputKey[String]("A git command line.")
 
-  object Common {
-    def organization = "org.gmd"
-  }
+  val apiVersion = settingKey[String]("The API version")
+
+  val appVersion = settingKey[String]("The application version")
 
   override lazy val settings = super.settings ++ Seq(
     version := "1.0.0",
