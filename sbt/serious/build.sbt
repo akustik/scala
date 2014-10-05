@@ -1,3 +1,5 @@
+import org.gmd.shell._
+
 name := "app"
 
 artifactName := { (sv: ScalaVersion, module: ModuleID, artifact: Artifact) =>
@@ -14,13 +16,12 @@ organization := Common.organization
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.1" % "test"
 
-lazy val root = (project in file(".")).aggregate(util, core).dependsOn(core).settings(
+lazy val root = (project in file(".")).aggregate(util, core).dependsOn(core, shell).settings(
   aggregate in gitStatus := false,
   aggregate in git := false
 )
-
 lazy val util = project
-
+lazy val shell = RootProject(uri("git://github.com/akustik/shellexecutor.git"))
 lazy val core = project.dependsOn(util)
 
 (test in Test) := {

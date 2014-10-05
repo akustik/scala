@@ -1,1 +1,1 @@
-libraryDependencies += "org.apache.commons" % "commons-exec" % "1.2"
+libraryDependencies += "org.gmd" % "shellexecutor_2.11" % "1.1.2"
