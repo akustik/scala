@@ -53,7 +53,6 @@ object AppBuild extends Build {
     git := shellExecutor("git" + " " + gitNaiveParser.parsed.mkString(" ")),
     gitCmd := {
       def parsedToString(parsed: Any): String = {
-        println(parsed)
         parsed match {
           case text: String => "\"" + text + "\""
           case ' ' => " "
