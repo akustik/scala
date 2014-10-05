@@ -1,3 +1,0 @@
-[submodule "sbt/deps/shellexecutor"]
-	path = sbt/deps/shellexecutor
-	url = git://github.com:akustik/shellexecutor.git
