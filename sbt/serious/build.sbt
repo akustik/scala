@@ -3,6 +3,9 @@ import org.gmd.shell._
 //This is an assignment
 name := "app"
 
+//Override built-in settings
+onLoadMessage := "Project commands: gitStatus, git, testJs\n" + onLoadMessage.value
+
 //Settings might be overridden. In this case it is a function that creates the
 //artifact name and has been changed to remove the scala version from the name
 artifactName := { (sv: ScalaVersion, module: ModuleID, artifact: Artifact) =>
