@@ -60,9 +60,39 @@ object AppBuild extends Build {
     version := "0.9.8"
   )
 
-  //Override the default settings for this build. These might be also overriden for
+  def show[T](s: Seq[T]) =
+    s.map("'" + _ + "'").mkString("[", ", ", "]")
+
+  //A command that demonstrates getting information out of State. They are used when tasks are not
+  //enough and allow to modify the internal sbt state
+  def printState = Command.command("printState") { state =>
+    import state._
+    println(definedCommands.size + " registered commands")
+    println("commands to run: " + show(remainingCommands))
+    println()
+
+    println("original arguments: " + show(configuration.arguments))
+    println("base directory: " + configuration.baseDirectory)
+    println()
+
+    println("sbt version: " + configuration.provider.id.version)
+    println("Scala version (for sbt): " + configuration.provider.scalaProvider.version)
+    println()
+
+    val extracted = Project.extract(state)
+    import extracted._
+    println("Current build: " + currentRef.build)
+    println("Current project: " + currentRef.project)
+    println("Original setting count: " + session.original.size)
+    println("Session setting count: " + session.append.size)
+
+    state
+  }
+
+  //Override the default settings for this build. These might be also overridden for
   //each project sbt/scala files
   override lazy val settings = super.settings ++ Seq(
+    commands ++= Seq(printState),
     version := "1.0.0",
     testJs := {
       println("Testing js files...")

@@ -4,7 +4,7 @@ import org.gmd.shell._
 name := "app"
 
 //Override built-in settings
-onLoadMessage := "Project commands: gitStatus, git, testJs\n" + onLoadMessage.value
+onLoadMessage := "Project commands: gitStatus, git, testJs, printState\n" + onLoadMessage.value
 
 //Settings might be overridden. In this case it is a function that creates the
 //artifact name and has been changed to remove the scala version from the name
