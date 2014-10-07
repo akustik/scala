@@ -46,6 +46,22 @@ object AppBuild extends Build {
 
   val appVersion = settingKey[String]("The application version")
 
+  //Creates the project structure. With aggregation, commands executed in the parent also
+  //execute in the children. To avoid this, tasks might be removed from the aggregation.
+  //Project dependencies might be also set here
+  lazy val root = (project in file(".")).aggregate(util, core).dependsOn(core, shell).settings(
+    aggregate in gitStatus := false,
+    aggregate in git := false
+  )
+  lazy val util = project
+  //A project that is directly a git repository
+  lazy val shell = RootProject(uri("git://github.com/akustik/shellexecutor.git"))
+  lazy val core = project.dependsOn(util).settings(
+    version := "0.9.8"
+  )
+
+  //Override the default settings for this build. These might be also overriden for
+  //each project sbt/scala files
   override lazy val settings = super.settings ++ Seq(
     version := "1.0.0",
     testJs := {

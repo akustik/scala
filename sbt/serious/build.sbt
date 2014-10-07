@@ -26,18 +26,6 @@ organization := Common.organization
 //classpath might be checked with "show core/test:fullClasspath"
 libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.1" % "test"
 
-//Creates the project structure. With aggregation, commands executed in the parent also
-//execute in the children. To avoid this, tasks might be removed from the aggregation.
-//Project dependencies might be also set here
-lazy val root = (project in file(".")).aggregate(util, core).dependsOn(core, shell).settings(
-  aggregate in gitStatus := false,
-  aggregate in git := false
-)
-lazy val util = project
-//A project that is directly a git repository
-lazy val shell = RootProject(uri("git://github.com/akustik/shellexecutor.git"))
-lazy val core = project.dependsOn(util)
-
 //A task might be overridden to execute another task before this. Note that this appears in
 //the task dependencies
 (test in Test) := {

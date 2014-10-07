@@ -1,7 +1,5 @@
 name := "core"
 
-version := "0.9"
-
 scalaVersion := "2.11.2"
 
 organization := Common.organization
