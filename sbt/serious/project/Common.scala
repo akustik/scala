@@ -24,24 +24,6 @@ object AppBuild extends Build {
   // A task that returns the result of performing git status
   val gitStatus = taskKey[String]("Checks the status of the git repository")
 
-  val gitCmdPullParser: Parser[String] = "pull"
-
-  val gitCmdPushParser: Parser[String] = "push"
-
-  val gitCmdFetchParser: Parser[String] = "fetch"
-
-  val gitCmdStatusParser: Parser[String] = "status"
-
-  val gitCmdCommitParser = "commit" ~ ' ' ~ "-a" ~ ' ' ~ "-m" ~ ' ' ~ StringBasic.examples("\"Added this and that\"")
-
-  val gitCmdUpdateModuleParser = "submodule" ~ ' ' ~ "foreach" ~ ' ' ~ "git" ~ ' ' ~ "pull"
-
-  val gitArgsParser = ' ' ~ oneOf(Seq(gitCmdPullParser, gitCmdStatusParser,
-    gitCmdPushParser, gitCmdFetchParser, gitCmdCommitParser, gitCmdUpdateModuleParser))
-
-  //Example of bash completion using parsers
-  val git = inputKey[String]("A git command line.")
-
   val apiVersion = settingKey[String]("The API version")
 
   val appVersion = settingKey[String]("The application version")
@@ -51,7 +33,7 @@ object AppBuild extends Build {
   //Project dependencies might be also set here
   lazy val root = (project in file(".")).aggregate(util, core).dependsOn(core, shell).settings(
     aggregate in gitStatus := false,
-    aggregate in git := false
+    aggregate in ShellExecutorPlugin.autoImport.git := false
   )
   lazy val util = project
   //A project that is directly a git repository
@@ -97,22 +79,7 @@ object AppBuild extends Build {
     testJs := {
       println("Testing js files...")
     },
-    gitStatus := shellExecutor("git status"),
-    git := {
-      def parsedToString(parsed: Any): String = {
-        parsed match {
-          case text: String => if(text.indexOf(' ') != -1) "\"" + text + "\"" else text
-          case ' ' => " "
-          case (c, (a, b)) => parsedToString(c)  + parsedToString((a, b))
-          case ((a, b), c) => parsedToString((a, b)) + parsedToString(c)
-          case (a, b) => parsedToString(a) + parsedToString(b)
-          case _ => {
-            throw new IllegalArgumentException(parsed.toString)
-          }
-        }
-      }
-      shellExecutor("git" + parsedToString(gitArgsParser.parsed))
-    }
+    gitStatus := shellExecutor("git status")
   )
 }
 
