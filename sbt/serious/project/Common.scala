@@ -55,7 +55,7 @@ object AppBuild extends Build {
   )
   lazy val util = project
   //A project that is directly a git repository
-  lazy val shell = RootProject(uri("git://github.com/akustik/shellexecutor.git"))
+  lazy val shell = RootProject(uri("git://github.com/akustik/shellexecutor.git#master"))
   lazy val core = project.dependsOn(util).settings(
     version := "0.9.8"
   )
