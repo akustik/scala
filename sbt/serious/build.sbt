@@ -29,6 +29,7 @@ libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.1" % "test"
 //A task might be overridden to execute another task before this. Note that this appears in
 //the task dependencies
 (test in Test) := {
+  println((version in (Test, test)).value)
   testJs.value
   (test in Test).value
 }
